@@ -18,7 +18,7 @@ public class DeviceScanActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_device_scan2);
+        setContentView(R.layout.device_scan);
         mProgressBar = (ProgressBar) findViewById(R.id.connectingProgress);
         mActivity = this;
     }

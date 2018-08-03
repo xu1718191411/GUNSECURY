@@ -4,4 +4,5 @@
     <string name="scan_string">わまりの端末を探そう!</string>
     <string name="scaning_string">接続中</string>
     <string name="scaning_complete_string">接続完了!</string>
+    <string name="iot_introduce">モノのインターネット（物のインターネット、英語: Internet of Things, IoT）とは、様々な「モノ（物）」がインターネットに接続され（単に繋がるだけではなく、モノがインターネットのように繋がる）、情報交換することにより相互に制御する仕組みである。</string>
 </resources>
