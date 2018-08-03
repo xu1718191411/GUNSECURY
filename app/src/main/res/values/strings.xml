@@ -1,0 +1,7 @@
+<resources>
+    <string name="app_name">GUNSECURY</string>
+    <string name="welcome_slogan">IoTの世界へようこそ</string>
+    <string name="scan_string">わまりの端末を探そう!</string>
+    <string name="scaning_string">接続中</string>
+    <string name="scaning_complete_string">接続完了!</string>
+</resources>
