@@ -69,6 +69,9 @@ public class BluetoothLeService extends Service {
     }
 
     public static BluetoothLeService getInstance(){
+        if(mService == null){
+            mService = new BluetoothLeService();
+        }
         return mService;
     }
 
