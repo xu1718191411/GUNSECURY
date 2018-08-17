@@ -6,6 +6,8 @@ import android.bluetooth.BluetoothManager;
 import android.content.Context;
 import android.content.Intent;
 
+import xuzhongwei.gunsecury.service.BluetoothLeService;
+
 public class GUNSECURYAPPLICATION extends Application {
     private BluetoothManager mBluetoothManager;
     private BluetoothAdapter mBluetoothAdapter;
@@ -31,7 +33,7 @@ public class GUNSECURYAPPLICATION extends Application {
     }
 
     private void startBLEService(){
-
+        Intent bindIntent = new Intent(this, BluetoothLeService.class);
+        startService(bindIntent);
     }
-
 }

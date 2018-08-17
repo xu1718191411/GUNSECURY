@@ -1,8 +1,12 @@
 package xuzhongwei.gunsecury;
 
 import android.app.Activity;
+import android.content.BroadcastReceiver;
+import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.os.Bundle;
+import android.os.Parcelable;
 import android.support.v7.app.AppCompatActivity;
 import android.view.View;
 import android.widget.AdapterView;
@@ -12,10 +16,10 @@ import android.widget.Toast;
 
 import java.util.ArrayList;
 import java.util.Timer;
-import java.util.TimerTask;
 
 import xuzhongwei.gunsecury.controllers.BLEController;
 import xuzhongwei.gunsecury.model.BLEDeviceDAO;
+import xuzhongwei.gunsecury.service.BluetoothLeService;
 import xuzhongwei.gunsecury.util.Adapter.DeviceScanResultAdapter;
 
 public class DeviceScanActivity extends AppCompatActivity {
@@ -25,6 +29,7 @@ public class DeviceScanActivity extends AppCompatActivity {
     private ListView bleScanListView;
     private DeviceScanResultAdapter mDeviceScanResultAdapter;
     private ArrayList<BLEDeviceDAO> deviceList = new ArrayList<BLEDeviceDAO>();
+    private BluetoothLeService mBluetoothLeService;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -36,6 +41,48 @@ public class DeviceScanActivity extends AppCompatActivity {
         mDeviceScanResultAdapter = new DeviceScanResultAdapter(getApplicationContext());
         bleScanListView.setAdapter(mDeviceScanResultAdapter);
         mBLEController = new BLEController(this);
+        mBluetoothLeService = BluetoothLeService.getInstance();
+
+//        mBluetoothLeService.setmOnBleDeviceListener(new BLEController.OnBleDeviceListener() {
+//            @Override
+//            public void onDeviceDiscoverd(BLEDeviceDAO device) {
+//                addIntoDeviceList(device);
+//            }
+//
+//            @Override
+//            public void onDeviceDiscoveryStopped() {
+//                showBLEDevice();
+//            }
+//
+//            @Override
+//            public void onDeviceServiceDiscoverd(List<BluetoothGattService> list) {
+//                runOnUiThread(new Runnable() {
+//                    @Override
+//                    public void run() {
+//                        showToast(mActivity.getResources().getString(R.string.scaning_complete_string));
+//                        //goToDeviceDetail();
+//                    }
+//                });
+//
+//            }
+//        });
+
+        BroadcastReceiver receiver = new BroadcastReceiver() {
+            @Override
+            public void onReceive(Context context, Intent intent) {
+                Bundle bundle = intent.getExtras();
+                if(bundle == null) return;
+                Parcelable p = bundle.getParcelable(BluetoothLeService.FIND_NEW_BLE_DEVICE);
+                if(p == null) return;
+                BLEDeviceDAO dao = (BLEDeviceDAO) p;
+                addIntoDeviceList(dao);
+            }
+        };
+
+        IntentFilter intentFilter = new IntentFilter();
+        intentFilter.addAction(BluetoothLeService.FIND_NEW_BLE_DEVICE);
+        registerReceiver(receiver,intentFilter);
+
 
         bleScanListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
@@ -43,26 +90,14 @@ public class DeviceScanActivity extends AppCompatActivity {
                 connnect();
             }
         });
+
     }
 
 
     public void startScan(View view){
-
-
-        mBLEController.setmOnBleDeviceListener(new BLEController.OnBleDeviceListener() {
-            @Override
-            public void onDeviceDiscoverd(BLEDeviceDAO device) {
-                addIntoDeviceList(device);
+            if(mBluetoothLeService != null){
+                mBluetoothLeService.startScan();
             }
-
-            @Override
-            public void onDeviceDiscoveryStopped() {
-                showBLEDevice();
-            }
-        });
-
-
-        mBLEController.startScan();
     }
 
     private void addIntoDeviceList(BLEDeviceDAO device){
@@ -81,24 +116,8 @@ public class DeviceScanActivity extends AppCompatActivity {
     }
 
     public void connnect(){
-            mProgressBar.setVisibility(View.VISIBLE);
-            Timer timer = new Timer();
-
-            timer.schedule(new TimerTask() {
-                @Override
-                public void run() {
-                    mActivity.runOnUiThread(new Runnable() {
-                        @Override
-                        public void run() {
-                            showToast(mActivity.getResources().getString(R.string.scaning_complete_string));
-                            goToDeviceDetail();
-                        }
-                    });
-
-                }
-            },3000);
-
-
+        mProgressBar.setVisibility(View.VISIBLE);
+        Timer timer = new Timer();
         showToast(getResources().getString(R.string.scaning_string));
     }
 

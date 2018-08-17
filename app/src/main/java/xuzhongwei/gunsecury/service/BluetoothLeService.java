@@ -1,27 +1,31 @@
 package xuzhongwei.gunsecury.service;
 
 import android.app.Service;
+import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothGatt;
 import android.bluetooth.BluetoothGattCallback;
 import android.bluetooth.BluetoothGattCharacteristic;
-import android.bluetooth.BluetoothGattDescriptor;
 import android.bluetooth.BluetoothGattService;
+import android.bluetooth.BluetoothManager;
 import android.bluetooth.BluetoothProfile;
+import android.bluetooth.le.ScanCallback;
+import android.bluetooth.le.ScanResult;
+import android.content.Context;
 import android.content.Intent;
+import android.os.Handler;
 import android.os.IBinder;
+import android.os.Parcelable;
 import android.util.Log;
 
 import java.util.List;
 import java.util.UUID;
 
-import xuzhongwei.gunsecury.common.GattInfo;
+import xuzhongwei.gunsecury.model.BLEDeviceDAO;
 
 public class BluetoothLeService extends Service {
 
     private final static String TAG = BluetoothLeService.class.getSimpleName();
-
-    private BluetoothGatt mBluetoothGatt;
 
     public final static String ACTION_GATT_CONNECTED =
             "com.example.bluetooth.le.ACTION_GATT_CONNECTED";
@@ -44,16 +48,22 @@ public class BluetoothLeService extends Service {
 
     public final static UUID UUID_HEART_RATE_MEASUREMENT = UUID.randomUUID();
 
+    public static final String  FIND_NEW_BLE_DEVICE = "FIND_NEW_BLE_DEVICE";
 
     private static BluetoothLeService mService;
+    private BluetoothAdapter mBluetoothAdapter;
+    private BluetoothManager mBluetoothManager;
+    private Handler mHandler = new Handler();
+    private ScanCallback mLeScanCallback;
+    private BluetoothGatt mBluetoothGatt;
+    private static final long SCAN_PERIOD = 100000;
 
-
-
-    public BluetoothLeService() {
-
-
+    @Override
+    public void onCreate() {
+        super.onCreate();
+        // Initializes Bluetooth adapter.
+        initialBlueTooth();
     }
-
 
     @Override
     public IBinder onBind(Intent intent) {
@@ -65,6 +75,7 @@ public class BluetoothLeService extends Service {
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
         mService = this;
+        initialBlueTooth();
         return super.onStartCommand(intent, flags, startId);
     }
 
@@ -76,7 +87,7 @@ public class BluetoothLeService extends Service {
     }
 
     public void connectDevice(final android.bluetooth.BluetoothDevice device){
-        mBluetoothGatt = device.connectGatt(getApplicationContext(),false, new BluetoothGattCallback() {
+        mBluetoothGatt = device.connectGatt(this,false, new BluetoothGattCallback() {
             @Override
             public void onConnectionStateChange(BluetoothGatt gatt, int status, int newState) {
                 super.onConnectionStateChange(gatt, status, newState);
@@ -91,17 +102,15 @@ public class BluetoothLeService extends Service {
                 int a;
                 switch (newState){
                     case BluetoothProfile.STATE_CONNECTED:
-                        broadcastUpdate(ACTION_GATT_CONNECTED, address, status);
                         gatt.discoverServices();
                         break;
                     case BluetoothProfile.STATE_CONNECTING:
-                        broadcastUpdate(ACTION_GATT_CONNECTING, address, status);
+
                         break;
                     case BluetoothProfile.STATE_DISCONNECTED:
-                        broadcastUpdate(ACTION_GATT_DISCONNECTED, address, status);
+
                         break;
                     case BluetoothProfile.STATE_DISCONNECTING:
-                        broadcastUpdate(ACTION_GATT_DISCONNECTING, address, status);
                         break;
                     default:
                         break;
@@ -112,13 +121,16 @@ public class BluetoothLeService extends Service {
             public void onServicesDiscovered(BluetoothGatt gatt, int status) {
                 super.onServicesDiscovered(gatt, status);
                 BluetoothDevice devide = gatt.getDevice();
-                broadcastUpdate(ACTION_GATT_SERVICES_DISCOVERED,device.getAddress(),status);
                 Log.d("BLEDISCOVERDiscovered",gatt.toString());
                 if (status == BluetoothGatt.GATT_SUCCESS) {
                     List<BluetoothGattService> list = gatt.getServices();
-                    BluetoothGattService service = gatt.getService(GattInfo.CLIENT_CHARACTERISTIC_CONFIG);
-                    BluetoothGattCharacteristic characteristic = service.getCharacteristic(GattInfo.CLIENT_CHARACTERISTIC_CONFIG);
                 }
+            }
+
+            @Override
+            public void onCharacteristicChanged(BluetoothGatt gatt, BluetoothGattCharacteristic characteristic) {
+                int a = 1;
+                super.onCharacteristicChanged(gatt, characteristic);
             }
 
             @Override
@@ -126,69 +138,75 @@ public class BluetoothLeService extends Service {
                 super.onCharacteristicRead(gatt, characteristic, status);
                 Log.d("BLEDISCOVERREAD",characteristic.toString());
                 if (status == BluetoothGatt.GATT_SUCCESS) {
-                    broadcastUpdate(ACTION_DATA_AVAILABLE, characteristic);
                     UUID uuid = gatt.getServices().get(0).getUuid();
                     int a = 0;
                 }
             }
-
-            @Override
-            public void onCharacteristicChanged(BluetoothGatt gatt, BluetoothGattCharacteristic characteristic) {
-                super.onCharacteristicChanged(gatt, characteristic);
-            }
-
-            @Override
-            public void onCharacteristicWrite(BluetoothGatt gatt, BluetoothGattCharacteristic characteristic, int status) {
-                super.onCharacteristicWrite(gatt, characteristic, status);
-            }
-
-            @Override
-            public void onDescriptorRead(BluetoothGatt gatt, BluetoothGattDescriptor descriptor, int status) {
-                super.onDescriptorRead(gatt, descriptor, status);
-            }
-
-            @Override
-            public void onDescriptorWrite(BluetoothGatt gatt, BluetoothGattDescriptor descriptor, int status) {
-                super.onDescriptorWrite(gatt, descriptor, status);
-            }
-
-            @Override
-            public void onMtuChanged(BluetoothGatt gatt, int mtu, int status) {
-                super.onMtuChanged(gatt, mtu, status);
-            }
-
-            @Override
-            public void onPhyRead(BluetoothGatt gatt, int txPhy, int rxPhy, int status) {
-                super.onPhyRead(gatt, txPhy, rxPhy, status);
-            }
-
-            @Override
-            public void onPhyUpdate(BluetoothGatt gatt, int txPhy, int rxPhy, int status) {
-                super.onPhyUpdate(gatt, txPhy, rxPhy, status);
-            }
-
-            @Override
-            public void onReadRemoteRssi(BluetoothGatt gatt, int rssi, int status) {
-                super.onReadRemoteRssi(gatt, rssi, status);
-            }
-
-            @Override
-            public void onReliableWriteCompleted(BluetoothGatt gatt, int status) {
-                super.onReliableWriteCompleted(gatt, status);
-            }
-
-
         });
     }
 
+
+    public void startScan() {
+        // Stops scanning after a pre-defined scan period.
+        mHandler.postDelayed(new Runnable() {
+            @Override
+            public void run() {
+                stopScan();
+            }
+        }, SCAN_PERIOD);
+
+        if(mBluetoothAdapter == null) return;
+        mBluetoothAdapter.getBluetoothLeScanner().startScan(mLeScanCallback);
+    }
+
+    public void stopScan(){
+        mBluetoothAdapter.getBluetoothLeScanner().stopScan(mLeScanCallback);
+    }
+
+
+
+    private void initialBlueTooth(){
+
+        mBluetoothManager =
+                (BluetoothManager) this.getSystemService(Context.BLUETOOTH_SERVICE);
+        mBluetoothAdapter = mBluetoothManager.getAdapter();
+        mLeScanCallback = new ScanCallback() {
+            @Override
+            public void onScanResult(int callbackType, ScanResult result) {
+                super.onScanResult(callbackType, result);
+                if(result == null) return;
+                if(result.getDevice() == null) return;
+                String name = result.getDevice().getName();
+                if(name == null) name="UNKNOWN DEVICE";
+                String address = result.getDevice().getAddress();
+                if(address == null) return;
+                BLEDeviceDAO bleDevice = new BLEDeviceDAO(name,address,result.getDevice());
+                broadcastUpdate(bleDevice);
+
+            }
+
+            @Override
+            public void onBatchScanResults(List<ScanResult> results) {
+                super.onBatchScanResults(results);
+            }
+
+            @Override
+            public void onScanFailed(int errorCode) {
+                super.onScanFailed(errorCode);
+            }
+        };
+    }
 
     public List<BluetoothGattService> getBLEService(){
         if(mBluetoothGatt == null) return null;
         return  mBluetoothGatt.getServices();
     }
 
-    private void broadcastUpdate(final String action,String address,int status) {
-        final Intent intent = new Intent(action);
+
+    private void broadcastUpdate(BLEDeviceDAO bleDevice){
+        Intent intent = new Intent();
+        intent.putExtra(FIND_NEW_BLE_DEVICE,(Parcelable) bleDevice);
+        intent.setAction(FIND_NEW_BLE_DEVICE);
         sendBroadcast(intent);
     }
 
