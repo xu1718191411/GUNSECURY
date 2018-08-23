@@ -74,6 +74,10 @@ public class BluetoothLeService extends Service {
     private static final long SCAN_PERIOD = 100000;
     private LinkedList<BluetoothGattCharacteristic> writeList = new LinkedList<BluetoothGattCharacteristic>();
 
+
+    private volatile bleRequest curBleRequest = null;
+
+
     private volatile LinkedList<bleRequest> procQueue;
     private final Lock lock = new ReentrantLock();
     public enum bleRequestOperation {
@@ -274,7 +278,7 @@ public class BluetoothLeService extends Service {
                 while(true){
                     executeQueue();
                     try {
-                        Thread.sleep(0,100000);
+                        Thread.sleep(50,0);
                     }
                     catch (Exception e) {
                         e.printStackTrace();
@@ -349,14 +353,28 @@ public class BluetoothLeService extends Service {
         }
         else {
             req.id = 0;
-            procQueue.add(req);
         }
+
+        procQueue.add(req);
         lock.unlock();
     }
 
 
     private void executeQueue(){
         lock.lock();
+        if (curBleRequest != null) {
+            Log.d(TAG, "executeQueue, curBleRequest running");
+            try {
+                Thread.sleep(10, 0);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+            lock.unlock();
+            return;
+        }
+
+
+
         if (procQueue == null) {
             lock.unlock();
             return;
@@ -365,8 +383,9 @@ public class BluetoothLeService extends Service {
             lock.unlock();
             return;
         }
-        bleRequest procReq = procQueue.removeFirst();
 
+        bleRequest procReq = procQueue.removeFirst();
+        curBleRequest = procReq;
         switch (procReq.operation) {
             case rd:
                 //Read, do non blocking read
@@ -382,12 +401,17 @@ public class BluetoothLeService extends Service {
                 break;
             case wrBlocking:
                 //Normal (blocking) write
+
+                Log.d(TAG, "executeQueue, wrBlocking running" + procReq.characteristic.getUuid().toString()+"");
+                procReq.status = bleRequestStatus.processing;
                 mBluetoothGatt.writeCharacteristic(procReq.characteristic);
+                procReq.status = bleRequestStatus.done;
                 break;
             case nsBlocking:
-
-                if (mBluetoothGatt.setCharacteristicNotification(procReq.characteristic, procReq.notifyenable)) {
-
+                Log.d(TAG, "executeQueue, nsBlocking running" +  procReq.characteristic.getUuid().toString()+"");
+                Boolean res = mBluetoothGatt.setCharacteristicNotification(procReq.characteristic, procReq.notifyenable);
+                if (res) {
+                    procReq.status = bleRequestStatus.processing;
                     BluetoothGattDescriptor clientConfig = procReq.characteristic
                             .getDescriptor(GattInfo.CLIENT_CHARACTERISTIC_CONFIG);
                     if (clientConfig != null) {
@@ -407,14 +431,39 @@ public class BluetoothLeService extends Service {
 
 
                     }
+
+                    procReq.status = bleRequestStatus.done;
+
                 }
 
                 break;
             default:
                 break;
-
         }
+
+        curBleRequest = null;
         lock.unlock();
+    }
+
+
+
+    public bleRequestStatus pollForStatusofRequest(bleRequest req) {
+        lock.lock();
+        if (req == curBleRequest) {
+            bleRequestStatus stat = curBleRequest.status;
+            if (stat == bleRequestStatus.done) {
+                curBleRequest = null;
+            }
+            if (stat == bleRequestStatus.timeout) {
+                curBleRequest = null;
+            }
+            lock.unlock();
+            return stat;
+        }
+        else {
+            lock.unlock();
+            return bleRequestStatus.no_such_request;
+        }
     }
 
 }

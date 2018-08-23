@@ -46,6 +46,7 @@
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:textSize="60dp"
+            android:id="@+id/irTempratureValue"
             android:text="39℃"
             android:textAlignment="center"
             android:layout_gravity="center"

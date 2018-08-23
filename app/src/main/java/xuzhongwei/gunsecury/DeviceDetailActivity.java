@@ -24,6 +24,7 @@ import xuzhongwei.gunsecury.common.GattInfo;
 import xuzhongwei.gunsecury.controllers.BLEController;
 import xuzhongwei.gunsecury.profile.GenericBleProfile;
 import xuzhongwei.gunsecury.profile.HumidityProfile;
+import xuzhongwei.gunsecury.profile.IRTTemperature;
 import xuzhongwei.gunsecury.service.BluetoothLeService;
 
 public class DeviceDetailActivity extends AppCompatActivity {
@@ -103,7 +104,6 @@ public class DeviceDetailActivity extends AppCompatActivity {
             if(bleServiceList.get(s).getUuid().toString().compareTo(GattInfo.UUID_HUM_SERV.toString()) == 0){
                 BluetoothGattService service = bleServiceList.get(s);//not all of the service but the service that is indicated to the HUMIDITY Service
                 HumidityProfile humidityProfile = new HumidityProfile(mBluetoothLeService,service);
-                humidityProfile.configureService();
 
 
                 humidityProfile.setmOnDataChangedListener(new GenericBleProfile.OnDataChangedListener() {
@@ -114,6 +114,20 @@ public class DeviceDetailActivity extends AppCompatActivity {
                 });
 
                 bleProfiles.add(humidityProfile);
+            }
+
+            if(bleServiceList.get(s).getUuid().toString().compareTo(GattInfo.UUID_IRT_SERV.toString()) == 0){
+                BluetoothGattService service = bleServiceList.get(s);//not all of the service but the service that is indicated to the HUMIDITY Service
+                IRTTemperature iRTTemperature = new IRTTemperature(mBluetoothLeService,service);
+
+                iRTTemperature.setmOnDataChangedListener(new GenericBleProfile.OnDataChangedListener() {
+                    @Override
+                    public void onDataChanged(String data) {
+                        ((TextView) mActivity.findViewById(R.id.irTempratureValue)).setText(data);
+                    }
+                });
+
+                bleProfiles.add(iRTTemperature);
             }
         }
 
@@ -129,8 +143,6 @@ public class DeviceDetailActivity extends AppCompatActivity {
                 }
             }
         }
-
-
 
     }
 

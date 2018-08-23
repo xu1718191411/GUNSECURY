@@ -28,6 +28,7 @@ import xuzhongwei.gunsecury.controllers.BLEController;
 import xuzhongwei.gunsecury.model.BLEDeviceDAO;
 import xuzhongwei.gunsecury.profile.GenericBleProfile;
 import xuzhongwei.gunsecury.profile.HumidityProfile;
+import xuzhongwei.gunsecury.profile.IRTTemperature;
 import xuzhongwei.gunsecury.service.BluetoothLeService;
 import xuzhongwei.gunsecury.util.Adapter.DeviceScanResultAdapter;
 
@@ -129,34 +130,41 @@ public class DeviceScanActivity extends AppCompatActivity {
                                         BluetoothGattService service = bleServiceList.get(s);//not all of the service but the service that is indicated to the HUMIDITY Service
                                         HumidityProfile humidityProfile = new HumidityProfile(mBluetoothLeService,service);
                                         humidityProfile.configureService();
+                                        try{
+                                            Thread.sleep(1000);
+                                        }catch (Exception e){
+                                            e.printStackTrace();
+                                        }
                                         bleProfiles.add(humidityProfile);
                                     }
 
-//                                    if(bleServiceList.get(s).getUuid().toString().compareTo(GattInfo.UUID_IRT_SERV.toString()) == 0){
-//                                        BluetoothGattService service = bleServiceList.get(s);//not all of the service but the service that is indicated to the HUMIDITY Service
-//                                        IRTTemperature iRTTemperature = new IRTTemperature(mBluetoothLeService,service);
-//                                        iRTTemperature.configureService();
-//                                        bleProfiles.add(iRTTemperature);
-//                                    }
-                            }
+                                    if(bleServiceList.get(s).getUuid().toString().compareTo(GattInfo.UUID_IRT_SERV.toString()) == 0){
 
-
-                            try{
-                                Thread.sleep(3000);
-                            }catch (Exception e){
-                                e.printStackTrace();
-                            }
-
-
-
-                                runOnUiThread(new Runnable() {
-                                    @Override
-                                    public void run() {
-                                        for(final GenericBleProfile p:bleProfiles){
-                                        p.enableService();
+                                        BluetoothGattService service = bleServiceList.get(s);//not all of the service but the service that is indicated to the HUMIDITY Service
+                                        IRTTemperature iRTTemperature = new IRTTemperature(mBluetoothLeService,service);
+                                        iRTTemperature.configureService();
+                                        try{
+                                            Thread.sleep(1000);
+                                        }catch (Exception e){
+                                            e.printStackTrace();
                                         }
+                                        bleProfiles.add(iRTTemperature);
                                     }
-                                });
+                            }
+
+                            for(final GenericBleProfile p:bleProfiles){
+                                p.enableService();
+                            }
+
+
+//                            runOnUiThread(new Runnable() {
+//                                @Override
+//                                public void run() {
+//                                    for(final GenericBleProfile p:bleProfiles){
+//                                    p.enableService();
+//                                    }
+//                                }
+//                            });
 
 
                         }
@@ -273,7 +281,7 @@ public class DeviceScanActivity extends AppCompatActivity {
                     int res = msg.getData().getInt(CHARACTERISTICS_FOUND_RESULT);
                     showToast(res+"");
                     PageJumpHandler pageJumpHandler = new PageJumpHandler();
-                    pageJumpHandler.sendEmptyMessage(3000);
+                    pageJumpHandler.sendEmptyMessage(5000);
                     break;
             }
         }
