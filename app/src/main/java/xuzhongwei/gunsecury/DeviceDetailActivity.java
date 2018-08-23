@@ -1,6 +1,7 @@
 package xuzhongwei.gunsecury;
 
 import android.app.Activity;
+import android.bluetooth.BluetoothGattCharacteristic;
 import android.bluetooth.BluetoothGattService;
 import android.content.BroadcastReceiver;
 import android.content.Context;
@@ -15,9 +16,13 @@ import android.widget.ArrayAdapter;
 import android.widget.LinearLayout;
 import android.widget.ListView;
 
+import java.util.ArrayList;
 import java.util.List;
 
+import xuzhongwei.gunsecury.common.GattInfo;
 import xuzhongwei.gunsecury.controllers.BLEController;
+import xuzhongwei.gunsecury.profile.GenericBleProfile;
+import xuzhongwei.gunsecury.profile.HumidityProfile;
 import xuzhongwei.gunsecury.service.BluetoothLeService;
 
 public class DeviceDetailActivity extends AppCompatActivity {
@@ -26,7 +31,11 @@ public class DeviceDetailActivity extends AppCompatActivity {
     private DrawerLayout mDrawerLayout;
     private ListView mDrawerList;
     private Activity mActivity;
-
+    private BroadcastReceiver receiver;
+    private BluetoothLeService mBluetoothLeService;
+    ArrayList<GenericBleProfile> bleProfiles = new ArrayList<GenericBleProfile>();
+    List<BluetoothGattService> bleServiceList = new ArrayList<BluetoothGattService>();
+    ArrayList<BluetoothGattCharacteristic> characteristicList = new ArrayList<BluetoothGattCharacteristic>();
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -34,6 +43,8 @@ public class DeviceDetailActivity extends AppCompatActivity {
         startBLEService();
         mainController = new BLEController(this);
         initialLayout();
+        initialReceiver();
+
     }
 
 
@@ -85,39 +96,76 @@ public class DeviceDetailActivity extends AppCompatActivity {
     }
 
     private void startBLEService(){
-        Intent bindIntent = new Intent(this, BluetoothLeService.class);
-        startService(bindIntent);
-        registerReceiver();
+        mBluetoothLeService = BluetoothLeService.getInstance();
+        bleServiceList = mBluetoothLeService.getBLEService();
+        for(int s=0;s<bleServiceList.size();s++){
+            if(bleServiceList.get(s).getUuid().toString().compareTo(GattInfo.UUID_HUM_SERV.toString()) == 0){
+                BluetoothGattService service = bleServiceList.get(s);//not all of the service but the service that is indicated to the HUMIDITY Service
+                HumidityProfile humidityProfile = new HumidityProfile(mBluetoothLeService,service);
+                humidityProfile.configureService();
+                bleProfiles.add(humidityProfile);
+            }
+        }
+
+
+
+        if(bleServiceList.size() > 0){
+            for(int i=0;i<bleServiceList.size();i++){
+                List<BluetoothGattCharacteristic> characteristics = bleServiceList.get(i).getCharacteristics();
+                if(characteristics.size() > 0){
+                    for(int j=0;j<characteristics.size();j++){
+                        characteristicList.add(characteristics.get(j));
+                    }
+                }
+            }
+        }
+
+
+
     }
 
-    private void registerReceiver(){
-        IntentFilter intentFilter = new IntentFilter();
-        intentFilter.addAction(BluetoothLeService.ACTION_GATT_CONNECTED);
-        intentFilter.addAction(BluetoothLeService.ACTION_GATT_DISCONNECTED);
-        intentFilter.addAction(BluetoothLeService.ACTION_GATT_SERVICES_DISCOVERED);
-        intentFilter.addAction(BluetoothLeService.ACTION_DATA_AVAILABLE);
-        BroadcastReceiver broadcastReceiver = new BroadcastReceiver() {
+
+    private void initialReceiver(){
+
+        receiver  = new BroadcastReceiver() {
+
             @Override
             public void onReceive(Context context, Intent intent) {
-                final String action = intent.getAction();
-                if (BluetoothLeService.ACTION_GATT_CONNECTED.equals(action)) {
-                    int a = 1;
-                } else if (BluetoothLeService.ACTION_GATT_DISCONNECTED.equals(action)) {
-                    int a = 1;
-                } else if (BluetoothLeService.ACTION_GATT_SERVICES_DISCOVERED.equals(action)) {
-                    int a = 1;
-                }else if (BluetoothLeService.ACTION_DATA_AVAILABLE.equals(action)) {
-                    List<BluetoothGattService> list = BluetoothLeService.getInstance().getBLEService();
-                    for(int i=0;i<list.size();i++){
-                        list.get(i).getCharacteristics();
+
+
+
+
+
+                if(intent.getAction().equals(BluetoothLeService.ACTION_DATA_NOTIFY)){
+                    byte[] value = intent.getByteArrayExtra(BluetoothLeService.EXTRA_DATA);
+                    String uuidStr = intent.getStringExtra(BluetoothLeService.EXTRA_UUID);
+
+                    for(int i=0;i<characteristicList.size();i++){
+                        BluetoothGattCharacteristic bleCharacteristic = characteristicList.get(i);
+                        if(bleCharacteristic.getUuid().toString().equals(uuidStr)){
+                            for(int j=0;j<bleProfiles.size();j++){
+                                if(bleProfiles.get(j).checkNormalData(uuidStr)){
+                                    bleProfiles.get(j).updateData(value);
+                                }
+                            }
+                        }
+
                     }
-                } else {
-                    int a = 1;
+
+
+
+                }else{
+
                 }
+
             }
         };
 
-
+        IntentFilter intentFilter = new IntentFilter();
+        intentFilter.addAction(BluetoothLeService.FIND_NEW_BLE_DEVICE);
+        intentFilter.addAction(BluetoothLeService.ACTION_GATT_SERVICES_DISCOVERED);
+        intentFilter.addAction(BluetoothLeService.ACTION_DATA_NOTIFY);
+        registerReceiver(receiver,intentFilter);
     }
 
 

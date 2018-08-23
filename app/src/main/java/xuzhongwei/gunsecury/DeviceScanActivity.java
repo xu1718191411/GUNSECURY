@@ -28,7 +28,6 @@ import xuzhongwei.gunsecury.controllers.BLEController;
 import xuzhongwei.gunsecury.model.BLEDeviceDAO;
 import xuzhongwei.gunsecury.profile.GenericBleProfile;
 import xuzhongwei.gunsecury.profile.HumidityProfile;
-import xuzhongwei.gunsecury.profile.IRTTemperature;
 import xuzhongwei.gunsecury.service.BluetoothLeService;
 import xuzhongwei.gunsecury.util.Adapter.DeviceScanResultAdapter;
 
@@ -44,6 +43,7 @@ public class DeviceScanActivity extends AppCompatActivity {
     private static final int CHARACTERISTICS_FOUND = 1;
     private static final String CHARACTERISTICS_FOUND_RESULT = "CHARACTERISTICS_FOUND_RESULT";
     ArrayList<GenericBleProfile> bleProfiles = new ArrayList<GenericBleProfile>();
+    private BroadcastReceiver receiver;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -83,7 +83,7 @@ public class DeviceScanActivity extends AppCompatActivity {
         mUIHandler = new UIHandler();
 
 
-        BroadcastReceiver receiver = new BroadcastReceiver() {
+        receiver  = new BroadcastReceiver() {
             List<BluetoothGattService> bleServiceList = new ArrayList<BluetoothGattService>();
             ArrayList<BluetoothGattCharacteristic> characteristicList = new ArrayList<BluetoothGattCharacteristic>();
             @Override
@@ -132,22 +132,32 @@ public class DeviceScanActivity extends AppCompatActivity {
                                         bleProfiles.add(humidityProfile);
                                     }
 
-                                    if(bleServiceList.get(s).getUuid().toString().compareTo(GattInfo.UUID_IRT_SERV.toString()) == 0){
-                                        BluetoothGattService service = bleServiceList.get(s);//not all of the service but the service that is indicated to the HUMIDITY Service
-                                        IRTTemperature iRTTemperature = new IRTTemperature(mBluetoothLeService,service);
-                                        iRTTemperature.configureService();
-                                        bleProfiles.add(iRTTemperature);
-                                    }
+//                                    if(bleServiceList.get(s).getUuid().toString().compareTo(GattInfo.UUID_IRT_SERV.toString()) == 0){
+//                                        BluetoothGattService service = bleServiceList.get(s);//not all of the service but the service that is indicated to the HUMIDITY Service
+//                                        IRTTemperature iRTTemperature = new IRTTemperature(mBluetoothLeService,service);
+//                                        iRTTemperature.configureService();
+//                                        bleProfiles.add(iRTTemperature);
+//                                    }
                             }
 
-                            for(final GenericBleProfile p:bleProfiles){
+
+                            try{
+                                Thread.sleep(3000);
+                            }catch (Exception e){
+                                e.printStackTrace();
+                            }
+
+
+
                                 runOnUiThread(new Runnable() {
                                     @Override
                                     public void run() {
+                                        for(final GenericBleProfile p:bleProfiles){
                                         p.enableService();
+                                        }
                                     }
                                 });
-                            }
+
 
                         }
                     });
@@ -158,6 +168,12 @@ public class DeviceScanActivity extends AppCompatActivity {
                     byte[] value = intent.getByteArrayExtra(BluetoothLeService.EXTRA_DATA);
                     String uuidStr = intent.getStringExtra(BluetoothLeService.EXTRA_UUID);
 
+
+                    try{
+                        Thread.sleep(1000);
+                    }catch (Exception e){
+                        e.printStackTrace();
+                    }
 
 
                     for(int i=0;i<characteristicList.size();i++){
@@ -249,8 +265,19 @@ public class DeviceScanActivity extends AppCompatActivity {
                 case CHARACTERISTICS_FOUND:
                     int res = msg.getData().getInt(CHARACTERISTICS_FOUND_RESULT);
                     showToast(res+"");
+                    PageJumpHandler pageJumpHandler = new PageJumpHandler();
+                    pageJumpHandler.sendEmptyMessage(3000);
                     break;
             }
+        }
+    }
+
+    class PageJumpHandler extends Handler{
+        @Override
+        public void handleMessage(Message msg) {
+            super.handleMessage(msg);
+            unregisterReceiver(receiver);
+            goToDeviceDetail();
         }
     }
 

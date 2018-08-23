@@ -404,6 +404,8 @@ public class BluetoothLeService extends Service {
                                     .setValue(BluetoothGattDescriptor.DISABLE_NOTIFICATION_VALUE);
                         }
                         mBluetoothGatt.writeDescriptor(clientConfig);
+
+
                     }
                 }
 
