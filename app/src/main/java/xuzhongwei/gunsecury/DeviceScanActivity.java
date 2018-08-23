@@ -154,6 +154,11 @@ public class DeviceScanActivity extends AppCompatActivity {
 
                             for(final GenericBleProfile p:bleProfiles){
                                 p.enableService();
+                                try{
+                                    Thread.sleep(1000);
+                                }catch (Exception e){
+                                    e.printStackTrace();
+                                }
                             }
 
 
