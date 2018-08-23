@@ -11,8 +11,13 @@ public class GenericBleProfile {
     protected BluetoothGattCharacteristic periodData;
     protected   BluetoothLeService mBluetoothLeService;
     protected BluetoothGattService mBluetoothGattService;
+    protected OnDataChangedListener mOnDataChangedListener;
 
-    public GenericBleProfile(BluetoothLeService bluetoothLeService,BluetoothGattService bluetoothGattService) {
+    public void setmOnDataChangedListener(OnDataChangedListener mOnDataChangedListener) {
+        this.mOnDataChangedListener = mOnDataChangedListener;
+    }
+
+    public GenericBleProfile(BluetoothLeService bluetoothLeService, BluetoothGattService bluetoothGattService) {
         this.mBluetoothLeService = bluetoothLeService;
         this.mBluetoothGattService = bluetoothGattService;
     }
@@ -36,6 +41,10 @@ public class GenericBleProfile {
 
     public void updateData(byte[] data){
 
+    }
+
+    public interface OnDataChangedListener{
+        void onDataChanged(String data);
     }
 
 

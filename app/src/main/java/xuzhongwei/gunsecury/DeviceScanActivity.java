@@ -223,6 +223,12 @@ public class DeviceScanActivity extends AppCompatActivity {
             }
     }
 
+    private void stopScan(){
+        if(mBluetoothLeService != null){
+            mBluetoothLeService.stopScan();
+        }
+    }
+
     private void addIntoDeviceList(BLEDeviceDAO device){
         for(int i=0;i<deviceList.size();i++){
             if(deviceList.get(i).getDeviceAddress().equals(device.getDeviceAddress())){
@@ -242,6 +248,7 @@ public class DeviceScanActivity extends AppCompatActivity {
         mProgressBar.setVisibility(View.VISIBLE);
         Timer timer = new Timer();
         showToast(getResources().getString(R.string.scaning_string));
+        stopScan();
     }
 
     private void goToDeviceDetail(){

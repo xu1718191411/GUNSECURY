@@ -15,6 +15,7 @@ import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.LinearLayout;
 import android.widget.ListView;
+import android.widget.TextView;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -103,6 +104,15 @@ public class DeviceDetailActivity extends AppCompatActivity {
                 BluetoothGattService service = bleServiceList.get(s);//not all of the service but the service that is indicated to the HUMIDITY Service
                 HumidityProfile humidityProfile = new HumidityProfile(mBluetoothLeService,service);
                 humidityProfile.configureService();
+
+
+                humidityProfile.setmOnDataChangedListener(new GenericBleProfile.OnDataChangedListener() {
+                    @Override
+                    public void onDataChanged(String data) {
+                        ((TextView) mActivity.findViewById(R.id.humidityValue)).setText(data);
+                    }
+                });
+
                 bleProfiles.add(humidityProfile);
             }
         }
@@ -134,8 +144,6 @@ public class DeviceDetailActivity extends AppCompatActivity {
 
 
 
-
-
                 if(intent.getAction().equals(BluetoothLeService.ACTION_DATA_NOTIFY)){
                     byte[] value = intent.getByteArrayExtra(BluetoothLeService.EXTRA_DATA);
                     String uuidStr = intent.getStringExtra(BluetoothLeService.EXTRA_UUID);
@@ -149,11 +157,7 @@ public class DeviceDetailActivity extends AppCompatActivity {
                                 }
                             }
                         }
-
                     }
-
-
-
                 }else{
 
                 }
@@ -167,6 +171,8 @@ public class DeviceDetailActivity extends AppCompatActivity {
         intentFilter.addAction(BluetoothLeService.ACTION_DATA_NOTIFY);
         registerReceiver(receiver,intentFilter);
     }
+
+
 
 
 }

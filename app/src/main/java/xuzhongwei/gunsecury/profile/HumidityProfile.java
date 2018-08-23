@@ -44,7 +44,10 @@ public class HumidityProfile extends GenericBleProfile {
 
         Point3D v = Sensor.HUMIDITY2.convert(value);
         double a = v.x;
-
+        String res = a + "";
+        if(mOnDataChangedListener != null){
+            mOnDataChangedListener.onDataChanged(res);
+        }
 
     }
 }
