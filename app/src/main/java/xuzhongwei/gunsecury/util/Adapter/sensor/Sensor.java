@@ -7,15 +7,25 @@ package xuzhongwei.gunsecury.util.Adapter.sensor;
 
 import android.bluetooth.BluetoothGattCharacteristic;
 
+import java.util.List;
 import java.util.UUID;
 
 import static java.lang.Math.pow;
+import static xuzhongwei.gunsecury.common.GattInfo.UUID_ACC_CONF;
+import static xuzhongwei.gunsecury.common.GattInfo.UUID_ACC_DATA;
+import static xuzhongwei.gunsecury.common.GattInfo.UUID_ACC_SERV;
+import static xuzhongwei.gunsecury.common.GattInfo.UUID_BAR_CONF;
+import static xuzhongwei.gunsecury.common.GattInfo.UUID_BAR_DATA;
+import static xuzhongwei.gunsecury.common.GattInfo.UUID_BAR_SERV;
 import static xuzhongwei.gunsecury.common.GattInfo.UUID_HUM_CONF;
 import static xuzhongwei.gunsecury.common.GattInfo.UUID_HUM_DATA;
 import static xuzhongwei.gunsecury.common.GattInfo.UUID_HUM_SERV;
 import static xuzhongwei.gunsecury.common.GattInfo.UUID_IRT_CONF;
 import static xuzhongwei.gunsecury.common.GattInfo.UUID_IRT_DATA;
 import static xuzhongwei.gunsecury.common.GattInfo.UUID_IRT_SERV;
+import static xuzhongwei.gunsecury.common.GattInfo.UUID_MAG_CONF;
+import static xuzhongwei.gunsecury.common.GattInfo.UUID_MAG_DATA;
+import static xuzhongwei.gunsecury.common.GattInfo.UUID_MAG_SERV;
 import xuzhongwei.gunsecury.util.Adapter.Point3D;
 
 /**
@@ -91,7 +101,73 @@ public enum Sensor {
 
             return new Point3D(100f * (a / 65535f), 0, 0);
         }
-    };
+    },
+    MAGNETOMETER(UUID_MAG_SERV, UUID_MAG_DATA, UUID_MAG_CONF) {
+        @Override
+        public Point3D convert(final byte [] value) {
+            // Multiply x and y with -1 so that the values correspond with the image in the app
+            float x = shortSignedAtOffset(value, 0) * (2000f / 65536f) * -1;
+            float y = shortSignedAtOffset(value, 2) * (2000f / 65536f) * -1;
+            float z = shortSignedAtOffset(value, 4) * (2000f / 65536f);
+
+            return new Point3D(x, y, z);
+        }
+    },
+    ACCELEROMETER(UUID_ACC_SERV, UUID_ACC_DATA, UUID_ACC_CONF,(byte)3) {
+        @Override
+        public Point3D convert(final byte[] value) {
+            /*
+             * The accelerometer has the range [-2g, 2g] with unit (1/64)g.
+             * To convert from unit (1/64)g to unit g we divide by 64.
+             * (g = 9.81 m/s^2)
+             * The z value is multiplied with -1 to coincide with how we have arbitrarily defined the positive y direction. (illustrated by the apps accelerometer
+             * image)
+             */
+
+                Point3D v;
+                final float SCALE = (float) 64.0;
+                Integer x = (int) value[0];
+                Integer y = (int) value[1];
+                Integer z = (int) value[2] * -1;
+                v = new Point3D(x / SCALE, y / SCALE, z / SCALE);
+                return v;
+            }
+
+        },
+    BAROMETER(UUID_BAR_SERV, UUID_BAR_DATA, UUID_BAR_CONF) {
+        @Override
+        public Point3D convert(final byte [] value) {
+
+
+            List<Integer> barometerCalibrationCoefficients = BarometerCalibrationCoefficients.INSTANCE.barometerCalibrationCoefficients;
+            if (barometerCalibrationCoefficients == null) {
+                // Log.w("Sensor", "Data notification arrived for barometer before it was calibrated.");
+                return new Point3D(0,0,0);
+            }
+
+            final int[] c; // Calibration coefficients
+            final Integer t_r; // Temperature raw value from sensor
+            final Integer p_r; // Pressure raw value from sensor
+            final Double S; // Interim value in calculation
+            final Double O; // Interim value in calculation
+            final Double p_a; // Pressure actual value in unit Pascal.
+
+            c = new int[barometerCalibrationCoefficients.size()];
+            for (int i = 0; i < barometerCalibrationCoefficients.size(); i++) {
+                c[i] = barometerCalibrationCoefficients.get(i);
+            }
+
+            t_r = shortSignedAtOffset(value, 0);
+            p_r = shortUnsignedAtOffset(value, 2);
+
+            S = c[2] + c[3] * t_r / pow(2, 17) + ((c[4] * t_r / pow(2, 15)) * t_r) / pow(2, 19);
+            O = c[5] * pow(2, 14) + c[6] * t_r / pow(2, 3) + ((c[7] * t_r / pow(2, 15)) * t_r) / pow(2, 4);
+            p_a = (S * p_r + O) / pow(2, 14);
+
+            return new Point3D(p_a,0,0);
+        }
+    };;
+
 
 
     /**
@@ -100,6 +176,7 @@ public enum Sensor {
      *
      * This function extracts these 16 bit two's complement values.
      * */
+
     private static Integer shortSignedAtOffset(byte[] c, int offset) {
         Integer lowerByte = (int) c[offset] & 0xFF;
         Integer upperByte = (int) c[offset+1]; // // Interpret MSB as signed

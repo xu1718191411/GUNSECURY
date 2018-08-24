@@ -26,6 +26,8 @@ import java.util.Timer;
 import xuzhongwei.gunsecury.common.GattInfo;
 import xuzhongwei.gunsecury.controllers.BLEController;
 import xuzhongwei.gunsecury.model.BLEDeviceDAO;
+import xuzhongwei.gunsecury.profile.AcceleroteProfile;
+import xuzhongwei.gunsecury.profile.BarometerProfile;
 import xuzhongwei.gunsecury.profile.GenericBleProfile;
 import xuzhongwei.gunsecury.profile.HumidityProfile;
 import xuzhongwei.gunsecury.profile.IRTTemperature;
@@ -149,6 +151,33 @@ public class DeviceScanActivity extends AppCompatActivity {
                                             e.printStackTrace();
                                         }
                                         bleProfiles.add(iRTTemperature);
+                                    }
+
+                                    if(bleServiceList.get(s).getUuid().toString().compareTo(GattInfo.UUID_ACC_SERV.toString()) == 0){
+
+                                        BluetoothGattService service = bleServiceList.get(s);//not all of the service but the service that is indicated to the HUMIDITY Service
+                                        AcceleroteProfile acceleroteProfile = new AcceleroteProfile(mBluetoothLeService,service);
+                                        acceleroteProfile.configureService();
+                                        try{
+                                            Thread.sleep(1000);
+                                        }catch (Exception e){
+                                            e.printStackTrace();
+                                        }
+                                        bleProfiles.add(acceleroteProfile);
+                                    }
+
+
+                                    if(bleServiceList.get(s).getUuid().toString().compareTo(GattInfo.UUID_BAR_SERV.toString()) == 0){
+
+                                        BluetoothGattService service = bleServiceList.get(s);//not all of the service but the service that is indicated to the HUMIDITY Service
+                                        BarometerProfile barometerProfile = new BarometerProfile(mBluetoothLeService,service);
+                                        barometerProfile.configureService();
+                                        try{
+                                            Thread.sleep(1000);
+                                        }catch (Exception e){
+                                            e.printStackTrace();
+                                        }
+                                        bleProfiles.add(barometerProfile);
                                     }
                             }
 

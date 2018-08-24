@@ -22,6 +22,8 @@ import java.util.List;
 
 import xuzhongwei.gunsecury.common.GattInfo;
 import xuzhongwei.gunsecury.controllers.BLEController;
+import xuzhongwei.gunsecury.profile.AcceleroteProfile;
+import xuzhongwei.gunsecury.profile.BarometerProfile;
 import xuzhongwei.gunsecury.profile.GenericBleProfile;
 import xuzhongwei.gunsecury.profile.HumidityProfile;
 import xuzhongwei.gunsecury.profile.IRTTemperature;
@@ -129,6 +131,42 @@ public class DeviceDetailActivity extends AppCompatActivity {
 
                 bleProfiles.add(iRTTemperature);
             }
+
+            if(bleServiceList.get(s).getUuid().toString().compareTo(GattInfo.UUID_ACC_SERV.toString()) == 0){
+
+                BluetoothGattService service = bleServiceList.get(s);//not all of the service but the service that is indicated to the HUMIDITY Service
+                AcceleroteProfile acceleroteProfile = new AcceleroteProfile(mBluetoothLeService,service);
+
+                acceleroteProfile.setmOnDataChangedListener(new GenericBleProfile.OnDataChangedListener() {
+                    @Override
+                    public void onDataChanged(String data) {
+                        ((TextView) mActivity.findViewById(R.id.acceleroterValue)).setText(data);
+                    }
+                });
+
+                bleProfiles.add(acceleroteProfile);
+            }
+
+
+
+            if(bleServiceList.get(s).getUuid().toString().compareTo(GattInfo.UUID_BAR_SERV.toString()) == 0){
+
+                BluetoothGattService service = bleServiceList.get(s);//not all of the service but the service that is indicated to the HUMIDITY Service
+                BarometerProfile barometerProfile = new BarometerProfile(mBluetoothLeService,service);
+
+                barometerProfile.setmOnDataChangedListener(new GenericBleProfile.OnDataChangedListener() {
+                    @Override
+                    public void onDataChanged(String data) {
+                        ((TextView) mActivity.findViewById(R.id.barometerValue)).setText(data);
+                    }
+                });
+
+                bleProfiles.add(barometerProfile);
+            }
+
+
+
+
         }
 
 
