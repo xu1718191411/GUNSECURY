@@ -40,9 +40,8 @@ public class IRTTemperature extends GenericBleProfile {
     @Override
     public void updateData(byte[] value) {
         Point3D v = Sensor.IR_TEMPERATURE.convert(value);
-        double result = v.z;
         if(mOnDataChangedListener != null){
-            mOnDataChangedListener.onDataChanged(result+"");
+            mOnDataChangedListener.onDataChanged(String.format("%.1f°C", v.y));
         }
     }
 

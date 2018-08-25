@@ -23,10 +23,10 @@ import java.util.List;
 import xuzhongwei.gunsecury.common.GattInfo;
 import xuzhongwei.gunsecury.controllers.BLEController;
 import xuzhongwei.gunsecury.profile.AcceleroteProfile;
-import xuzhongwei.gunsecury.profile.BarometerProfile;
 import xuzhongwei.gunsecury.profile.GenericBleProfile;
 import xuzhongwei.gunsecury.profile.HumidityProfile;
 import xuzhongwei.gunsecury.profile.IRTTemperature;
+import xuzhongwei.gunsecury.profile.MovementProfile;
 import xuzhongwei.gunsecury.service.BluetoothLeService;
 
 public class DeviceDetailActivity extends AppCompatActivity {
@@ -54,8 +54,8 @@ public class DeviceDetailActivity extends AppCompatActivity {
 
     private void initialLayout(){
         mActivity = this;
-        mPlanetTitles = new String[]{"周囲温度", "赤外線温度", "加速度", "湿度","磁気","気圧","ジャイロスコープ","DeviceInformation"};
-
+        //mPlanetTitles = new String[]{"周囲温度", "赤外線温度", "加速度", "湿度","磁気","気圧","ジャイロスコープ","DeviceInformation"};
+        mPlanetTitles = new String[]{ "赤外線温度", "加速度", "湿度"};
         mDrawerLayout = (DrawerLayout) findViewById(R.id.drawer_layout);
         mDrawerList = (ListView) findViewById(R.id.left_drawer);
         mDrawerList.setAdapter(new ArrayAdapter<String>(this,
@@ -78,8 +78,9 @@ public class DeviceDetailActivity extends AppCompatActivity {
     }
 
     private void ChangeContent(int n){
-        String[] ids = {"ambient_temprature_layout","ir_temprature_layout","ir_accelerometer_layout","ir_humidity_layout","ir_magnetometer_layout","ir_barometer_layout","ir_gyroscope_layout","deviceInformationLayout"};
+        //String[] ids = {"ambient_temprature_layout","ir_temprature_layout","ir_accelerometer_layout","ir_humidity_layout","ir_magnetometer_layout","ir_barometer_layout","ir_gyroscope_layout","deviceInformationLayout"};
 
+        String[] ids = {"ir_temprature_layout","ir_accelerometer_layout","ir_humidity_layout","deviceInformationLayout"};
 
         for(int i=0;i<ids.length;i++){
             ((LinearLayout) findViewById(getResourceId(ids[i],"id",getPackageName()))).setVisibility(View.GONE);
@@ -149,22 +150,22 @@ public class DeviceDetailActivity extends AppCompatActivity {
 
 
 
-            if(bleServiceList.get(s).getUuid().toString().compareTo(GattInfo.UUID_BAR_SERV.toString()) == 0){
+
+
+            if(bleServiceList.get(s).getUuid().toString().compareTo(GattInfo.UUID_MOV_SERV.toString()) == 0){
 
                 BluetoothGattService service = bleServiceList.get(s);//not all of the service but the service that is indicated to the HUMIDITY Service
-                BarometerProfile barometerProfile = new BarometerProfile(mBluetoothLeService,service);
+                MovementProfile movementProfile = new MovementProfile(mBluetoothLeService,service);
 
-                barometerProfile.setmOnDataChangedListener(new GenericBleProfile.OnDataChangedListener() {
+                movementProfile.setmOnDataChangedListener(new GenericBleProfile.OnDataChangedListener() {
                     @Override
                     public void onDataChanged(String data) {
-                        ((TextView) mActivity.findViewById(R.id.barometerValue)).setText(data);
+                        ((TextView) mActivity.findViewById(R.id.movementValue)).setText(data);
                     }
                 });
 
-                bleProfiles.add(barometerProfile);
+                bleProfiles.add(movementProfile);
             }
-
-
 
 
         }

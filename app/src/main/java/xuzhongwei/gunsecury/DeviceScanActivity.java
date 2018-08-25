@@ -27,10 +27,10 @@ import xuzhongwei.gunsecury.common.GattInfo;
 import xuzhongwei.gunsecury.controllers.BLEController;
 import xuzhongwei.gunsecury.model.BLEDeviceDAO;
 import xuzhongwei.gunsecury.profile.AcceleroteProfile;
-import xuzhongwei.gunsecury.profile.BarometerProfile;
 import xuzhongwei.gunsecury.profile.GenericBleProfile;
 import xuzhongwei.gunsecury.profile.HumidityProfile;
 import xuzhongwei.gunsecury.profile.IRTTemperature;
+import xuzhongwei.gunsecury.profile.MovementProfile;
 import xuzhongwei.gunsecury.service.BluetoothLeService;
 import xuzhongwei.gunsecury.util.Adapter.DeviceScanResultAdapter;
 
@@ -167,17 +167,17 @@ public class DeviceScanActivity extends AppCompatActivity {
                                     }
 
 
-                                    if(bleServiceList.get(s).getUuid().toString().compareTo(GattInfo.UUID_BAR_SERV.toString()) == 0){
+                                    if(bleServiceList.get(s).getUuid().toString().compareTo(GattInfo.UUID_MOV_SERV.toString()) == 0){
 
                                         BluetoothGattService service = bleServiceList.get(s);//not all of the service but the service that is indicated to the HUMIDITY Service
-                                        BarometerProfile barometerProfile = new BarometerProfile(mBluetoothLeService,service);
-                                        barometerProfile.configureService();
+                                        MovementProfile movementProfile = new MovementProfile(mBluetoothLeService,service);
+                                        movementProfile.configureService();
                                         try{
                                             Thread.sleep(1000);
                                         }catch (Exception e){
                                             e.printStackTrace();
                                         }
-                                        bleProfiles.add(barometerProfile);
+                                        bleProfiles.add(movementProfile);
                                     }
                             }
 
@@ -315,7 +315,7 @@ public class DeviceScanActivity extends AppCompatActivity {
                     int res = msg.getData().getInt(CHARACTERISTICS_FOUND_RESULT);
                     showToast(res+"");
                     PageJumpHandler pageJumpHandler = new PageJumpHandler();
-                    pageJumpHandler.sendEmptyMessage(5000);
+                    pageJumpHandler.sendEmptyMessage(8000);
                     break;
             }
         }

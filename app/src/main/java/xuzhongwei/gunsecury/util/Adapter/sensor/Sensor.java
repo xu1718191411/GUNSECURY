@@ -26,6 +26,14 @@ import static xuzhongwei.gunsecury.common.GattInfo.UUID_IRT_SERV;
 import static xuzhongwei.gunsecury.common.GattInfo.UUID_MAG_CONF;
 import static xuzhongwei.gunsecury.common.GattInfo.UUID_MAG_DATA;
 import static xuzhongwei.gunsecury.common.GattInfo.UUID_MAG_SERV;
+import static xuzhongwei.gunsecury.common.GattInfo.UUID_OPT_SERV;
+import static xuzhongwei.gunsecury.common.GattInfo.UUID_OPT_DATA;
+import static xuzhongwei.gunsecury.common.GattInfo.UUID_OPT_CONF;
+import static xuzhongwei.gunsecury.common.GattInfo.UUID_MOV_SERV;
+import static xuzhongwei.gunsecury.common.GattInfo.UUID_MOV_DATA;
+import static xuzhongwei.gunsecury.common.GattInfo.UUID_MOV_CONF;
+
+
 import xuzhongwei.gunsecury.util.Adapter.Point3D;
 
 /**
@@ -166,7 +174,64 @@ public enum Sensor {
 
             return new Point3D(p_a,0,0);
         }
-    };;
+    },
+    LUXOMETER(UUID_OPT_SERV, UUID_OPT_DATA, UUID_OPT_CONF) {
+        @Override
+        public Point3D convert(final byte [] value) {
+            int mantissa;
+            int exponent;
+            Integer sfloat= shortUnsignedAtOffset(value, 0);
+
+            mantissa = sfloat & 0x0FFF;
+            exponent = (sfloat >> 12) & 0xFF;
+
+            double output;
+            double magnitude = pow(2.0f, exponent);
+            output = (mantissa * magnitude);
+
+            return new Point3D(output / 100.0f, 0, 0);
+        }
+    },
+
+    MOVEMENT_ACC(UUID_MOV_SERV,UUID_MOV_DATA, UUID_MOV_CONF,(byte)3) {
+        @Override
+        public Point3D convert(final byte[] value) {
+            // Range 8G
+            final float SCALE = (float) 4096.0;
+
+            int x = (value[7]<<8) + value[6];
+            int y = (value[9]<<8) + value[8];
+            int z = (value[11]<<8) + value[10];
+            return new Point3D(((x / SCALE) * -1), y / SCALE, ((z / SCALE)*-1));
+        }
+    },
+    MOVEMENT_GYRO(UUID_MOV_SERV,UUID_MOV_DATA, UUID_MOV_CONF,(byte)3) {
+        @Override
+        public Point3D convert(final byte[] value) {
+
+            final float SCALE = (float) 128.0;
+
+            int x = (value[1]<<8) + value[0];
+            int y = (value[3]<<8) + value[2];
+            int z = (value[5]<<8) + value[4];
+            return new Point3D(x / SCALE, y / SCALE, z / SCALE);
+        }
+    },
+    MOVEMENT_MAG(UUID_MOV_SERV,UUID_MOV_DATA, UUID_MOV_CONF,(byte)3) {
+        @Override
+        public Point3D convert(final byte[] value) {
+            final float SCALE = (float) (32768 / 4912);
+            if (value.length >= 18) {
+                int x = (value[13]<<8) + value[12];
+                int y = (value[15]<<8) + value[14];
+                int z = (value[17]<<8) + value[16];
+                return new Point3D(x / SCALE, y / SCALE, z / SCALE);
+            }
+            else return new Point3D(0,0,0);
+        }
+    },
+
+    ;
 
 
 

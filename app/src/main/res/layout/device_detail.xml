@@ -124,6 +124,7 @@
         android:visibility="invisible">
 
         <TextView
+            android:id="@+id/movementValue"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:textSize="60dp"
@@ -149,7 +150,7 @@
         android:visibility="invisible">
 
         <TextView
-            android:id="@+id/barometerValue"
+            android:id="@+id/luxometerValue"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:textSize="60dp"

@@ -43,10 +43,8 @@ public class HumidityProfile extends GenericBleProfile {
     public void updateData(byte[] value){
 
         Point3D v = Sensor.HUMIDITY2.convert(value);
-        double a = v.x;
-        String res = a + "";
         if(mOnDataChangedListener != null){
-            mOnDataChangedListener.onDataChanged(res);
+            mOnDataChangedListener.onDataChanged(String.format("%.1f %%rH", v.x));
         }
 
     }

@@ -10,34 +10,33 @@ import xuzhongwei.gunsecury.service.BluetoothLeService;
 import xuzhongwei.gunsecury.util.Adapter.Point3D;
 import xuzhongwei.gunsecury.util.Adapter.sensor.Sensor;
 
-public class AcceleroteProfile extends GenericBleProfile {
-    public AcceleroteProfile(BluetoothLeService bluetoothLeService, BluetoothGattService bluetoothGattService) {
+public class LuxometerProfile extends GenericBleProfile {
+    public LuxometerProfile(BluetoothLeService bluetoothLeService, BluetoothGattService bluetoothGattService) {
         super(bluetoothLeService, bluetoothGattService);
 
         List<BluetoothGattCharacteristic> charalist = bluetoothGattService.getCharacteristics();
         for(BluetoothGattCharacteristic c:charalist){
 
-            if(c.getUuid().toString().equals(GattInfo.UUID_ACC_DATA.toString())){
+            if(c.getUuid().toString().equals(GattInfo.UUID_OPT_DATA.toString())){
                 this.normalData = c;
             }
 
-            if(c.getUuid().toString().equals(GattInfo.UUID_ACC_CONF.toString())){
+            if(c.getUuid().toString().equals(GattInfo.UUID_OPT_CONF.toString())){
                 this.configData = c;
             }
 
-            if(c.getUuid().toString().equals(GattInfo.UUID_ACC_PERI.toString())){
+            if(c.getUuid().toString().equals(GattInfo.UUID_OPT_PERI.toString())){
                 this.periodData = c;
             }
         }
     }
 
 
+
     public void updateData(byte[] value){
-
-        Point3D v = Sensor.ACCELEROMETER.convert(value);
+        Point3D v = Sensor.LUXOMETER.convert(value);
         if(mOnDataChangedListener != null){
-            mOnDataChangedListener.onDataChanged(String.format("X:%.2fG\n Y:%.2fG\n Z:%.2fG", v.x,v.y,v.z));
+            mOnDataChangedListener.onDataChanged(String.format("%.1f Lux", v.x)+"");
         }
-
     }
 }
