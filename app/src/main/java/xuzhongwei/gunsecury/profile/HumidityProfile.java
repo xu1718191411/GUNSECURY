@@ -8,6 +8,7 @@ import java.util.List;
 import xuzhongwei.gunsecury.common.GattInfo;
 import xuzhongwei.gunsecury.service.BluetoothLeService;
 import xuzhongwei.gunsecury.util.Adapter.Point3D;
+import xuzhongwei.gunsecury.util.Adapter.Util;
 import xuzhongwei.gunsecury.util.Adapter.sensor.Sensor;
 
 public class HumidityProfile extends GenericBleProfile {
@@ -41,11 +42,16 @@ public class HumidityProfile extends GenericBleProfile {
 
 
     public void updateData(byte[] value){
+        //is sensorTag2 or is sensorTag1
+        Point3D v = Sensor.HUMIDITY.convert(value);
+        if(Util.isSensorTag2(BluetoothLeService.getInstance().getDevice())){
+            v = Sensor.HUMIDITY2.convert(value);
+        }
 
-        Point3D v = Sensor.HUMIDITY2.convert(value);
         if(mOnDataChangedListener != null){
             mOnDataChangedListener.onDataChanged(String.format("%.1f %%rH", v.x));
         }
+
 
     }
 }

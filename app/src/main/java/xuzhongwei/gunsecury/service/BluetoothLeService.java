@@ -74,7 +74,6 @@ public class BluetoothLeService extends Service {
     private static final long SCAN_PERIOD = 100000;
     private LinkedList<BluetoothGattCharacteristic> writeList = new LinkedList<BluetoothGattCharacteristic>();
 
-
     private volatile bleRequest curBleRequest = null;
 
 
@@ -160,7 +159,6 @@ public class BluetoothLeService extends Service {
                         gatt.discoverServices();
                         break;
                     case BluetoothProfile.STATE_CONNECTING:
-
                         break;
                     case BluetoothProfile.STATE_DISCONNECTED:
                         break;
@@ -202,8 +200,6 @@ public class BluetoothLeService extends Service {
             @Override
             public void onCharacteristicWrite(BluetoothGatt gatt, BluetoothGattCharacteristic characteristic, int status) {
                 super.onCharacteristicWrite(gatt, characteristic, status);
-
-
             }
 
             @Override
@@ -215,8 +211,6 @@ public class BluetoothLeService extends Service {
             public void onDescriptorWrite(BluetoothGatt gatt, BluetoothGattDescriptor descriptor, int status) {
                 super.onDescriptorWrite(gatt, descriptor, status);
             }
-
-
 
         });
     }
@@ -240,6 +234,12 @@ public class BluetoothLeService extends Service {
     }
 
 
+    public BluetoothDevice getDevice(){
+        if(mBluetoothGatt != null){
+            return mBluetoothGatt.getDevice();
+        }
+        return null;
+    }
 
     private void initialBlueTooth(){
         procQueue = new LinkedList<bleRequest>();
