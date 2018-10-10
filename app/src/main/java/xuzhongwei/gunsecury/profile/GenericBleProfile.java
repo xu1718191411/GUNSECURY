@@ -2,6 +2,7 @@ package xuzhongwei.gunsecury.profile;
 
 import android.bluetooth.BluetoothGattCharacteristic;
 import android.bluetooth.BluetoothGattService;
+import android.util.Log;
 
 import xuzhongwei.gunsecury.service.BluetoothLeService;
 
@@ -23,7 +24,17 @@ public class GenericBleProfile {
     }
 
     public void enableService(){
-        mBluetoothLeService.writeCharacteristic(this.configData, (byte)0x01);
+        int error = mBluetoothLeService.writeCharacteristic(this.configData, (byte)0x01);
+        if (error != 0) {
+            if (this.configData != null)
+                printError("Sensor enable failed: ",this.configData,error);
+        }else{
+            int a = 1;
+            int b = a;
+        }
+        //this.periodWasUpdated(1
+
+
     }
 
 
@@ -47,5 +58,12 @@ public class GenericBleProfile {
         void onDataChanged(String data);
     }
 
+    public void printError (String msg, BluetoothGattCharacteristic c, int error) {
+        try {
+            Log.d("GenericBluetoothProfile", msg + c.getUuid().toString() + " Error: " + error);
 
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
 }

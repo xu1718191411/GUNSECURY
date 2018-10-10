@@ -1,11 +1,9 @@
 package xuzhongwei.gunsecury;
 
 import android.app.Activity;
-import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothGattCharacteristic;
 import android.bluetooth.BluetoothGattService;
-import android.bluetooth.BluetoothManager;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
@@ -25,14 +23,9 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Timer;
 
-import xuzhongwei.gunsecury.common.GattInfo;
 import xuzhongwei.gunsecury.controllers.BLEController;
 import xuzhongwei.gunsecury.model.BLEDeviceDAO;
-import xuzhongwei.gunsecury.profile.AcceleroteProfile;
 import xuzhongwei.gunsecury.profile.GenericBleProfile;
-import xuzhongwei.gunsecury.profile.HumidityProfile;
-import xuzhongwei.gunsecury.profile.IRTTemperature;
-import xuzhongwei.gunsecury.profile.MovementProfile;
 import xuzhongwei.gunsecury.service.BluetoothLeService;
 import xuzhongwei.gunsecury.util.Adapter.DeviceScanResultAdapter;
 
@@ -44,7 +37,6 @@ public class DeviceScanActivity extends AppCompatActivity {
     private DeviceScanResultAdapter mDeviceScanResultAdapter;
     private ArrayList<BLEDeviceDAO> deviceList = new ArrayList<BLEDeviceDAO>();
     private BluetoothLeService mBluetoothLeService;
-    private UIHandler mUIHandler;
     private static final int CHARACTERISTICS_FOUND = 1;
     private static final String CHARACTERISTICS_FOUND_RESULT = "CHARACTERISTICS_FOUND_RESULT";
     ArrayList<GenericBleProfile> bleProfiles = new ArrayList<GenericBleProfile>();
@@ -61,7 +53,6 @@ public class DeviceScanActivity extends AppCompatActivity {
         mBLEController = new BLEController(this);
         mBluetoothLeService = BluetoothLeService.getInstance();
 
-        mUIHandler = new UIHandler();
 
 
         receiver  = new BroadcastReceiver() {
@@ -79,141 +70,14 @@ public class DeviceScanActivity extends AppCompatActivity {
                     BluetoothDevice device = (BluetoothDevice) p;
                     BLEDeviceDAO dao = new BLEDeviceDAO(device.getName(),device.getAddress(),device);
                     addIntoDeviceList(dao);
-                }else if(intent.getAction().equals(BluetoothLeService.ACTION_GATT_SERVICES_DISCOVERED)){
-                    bleServiceList = mBluetoothLeService.getBLEService();
-
-                    if(bleServiceList.size() > 0){
-                        for(int i=0;i<bleServiceList.size();i++){
-                            List<BluetoothGattCharacteristic> characteristics = bleServiceList.get(i).getCharacteristics();
-                            if(characteristics.size() > 0){
-                                for(int j=0;j<characteristics.size();j++){
-                                    characteristicList.add(characteristics.get(j));
-                                }
-                            }
-                        }
-                    }
-
-                    Message msg = new Message();
-                    msg.what = CHARACTERISTICS_FOUND;
-                    Bundle bundle = new Bundle();
-                    bundle.putInt(CHARACTERISTICS_FOUND_RESULT,characteristicList.size());
-                    msg.setData(bundle);
-                    mUIHandler.sendMessage(msg);
-
-                    Thread thread = new Thread(new Runnable() {
-                        @Override
-                        public void run() {
-
-                            //loop the GattService and retrieve each Service towards HUMIDITY,TEMPERATURE,GRAVITY......
-                            for(int s=0;s<bleServiceList.size();s++){
-                                if(bleServiceList.get(s).getUuid().toString().compareTo(GattInfo.UUID_ACC_SERV.toString()) == 0){
-
-                                    BluetoothGattService service = bleServiceList.get(s);//not all of the service but the service that is indicated to the HUMIDITY Service
-                                    AcceleroteProfile acceleroteProfile = new AcceleroteProfile(mBluetoothLeService,service);
-                                    acceleroteProfile.configureService();
-                                    try{
-                                        Thread.sleep(1000);
-                                    }catch (Exception e){
-                                        e.printStackTrace();
-                                    }
-                                    bleProfiles.add(acceleroteProfile);
-                                }
-
-
-                                if(bleServiceList.get(s).getUuid().toString().compareTo(GattInfo.UUID_HUM_SERV.toString()) == 0){
-                                        BluetoothGattService service = bleServiceList.get(s);//not all of the service but the service that is indicated to the HUMIDITY Service
-                                        HumidityProfile humidityProfile = new HumidityProfile(mBluetoothLeService,service);
-                                        humidityProfile.configureService();
-                                        try{
-                                            Thread.sleep(1000);
-                                        }catch (Exception e){
-                                            e.printStackTrace();
-                                        }
-                                        bleProfiles.add(humidityProfile);
-                                    }
-
-                                    if(bleServiceList.get(s).getUuid().toString().compareTo(GattInfo.UUID_IRT_SERV.toString()) == 0){
-
-                                        BluetoothGattService service = bleServiceList.get(s);//not all of the service but the service that is indicated to the HUMIDITY Service
-                                        IRTTemperature iRTTemperature = new IRTTemperature(mBluetoothLeService,service);
-                                        iRTTemperature.configureService();
-                                        try{
-                                            Thread.sleep(1000);
-                                        }catch (Exception e){
-                                            e.printStackTrace();
-                                        }
-                                        bleProfiles.add(iRTTemperature);
-                                    }
-
-
-
-                                    if(bleServiceList.get(s).getUuid().toString().compareTo(GattInfo.UUID_MOV_SERV.toString()) == 0){
-
-                                        BluetoothGattService service = bleServiceList.get(s);//not all of the service but the service that is indicated to the HUMIDITY Service
-                                        MovementProfile movementProfile = new MovementProfile(mBluetoothLeService,service);
-                                        movementProfile.configureService();
-                                        try{
-                                            Thread.sleep(1000);
-                                        }catch (Exception e){
-                                            e.printStackTrace();
-                                        }
-                                        bleProfiles.add(movementProfile);
-                                    }
-                            }
-
-                            for(final GenericBleProfile p:bleProfiles){
-                                p.enableService();
-                                try{
-                                    Thread.sleep(1000);
-                                }catch (Exception e){
-                                    e.printStackTrace();
-                                }
-                            }
-
-
-//                            runOnUiThread(new Runnable() {
-//                                @Override
-//                                public void run() {
-//                                    for(final GenericBleProfile p:bleProfiles){
-//                                    p.enableService();
-//                                    }
-//                                }
-//                            });
-
-
-                        }
-                    });
-
-                    thread.start();
-
-                }else if(intent.getAction().equals(BluetoothLeService.ACTION_DATA_NOTIFY)){
-                    byte[] value = intent.getByteArrayExtra(BluetoothLeService.EXTRA_DATA);
-                    String uuidStr = intent.getStringExtra(BluetoothLeService.EXTRA_UUID);
-
-
-                    try{
-                        Thread.sleep(1000);
-                    }catch (Exception e){
-                        e.printStackTrace();
-                    }
-
-
-                    for(int i=0;i<characteristicList.size();i++){
-                        BluetoothGattCharacteristic bleCharacteristic = characteristicList.get(i);
-                        if(bleCharacteristic.getUuid().toString().equals(uuidStr)){
-                            for(int j=0;j<bleProfiles.size();j++){
-                                if(bleProfiles.get(j).checkNormalData(uuidStr)){
-                                    bleProfiles.get(j).updateData(value);
-                                }
-                            }
-                        }
-
-                    }
-
                 }else{
-
+                    String a = intent.getAction();
+                    String b = BluetoothLeService.ACTION_GATT_CONNECTED;
+                    if(a.equals(b)){
+                        PageJumpHandler pageJumpHandler = new PageJumpHandler();
+                        pageJumpHandler.sendEmptyMessage(8000);
+                    }
                 }
-
             }
         };
 
@@ -221,6 +85,8 @@ public class DeviceScanActivity extends AppCompatActivity {
         intentFilter.addAction(BluetoothLeService.FIND_NEW_BLE_DEVICE);
         intentFilter.addAction(BluetoothLeService.ACTION_GATT_SERVICES_DISCOVERED);
         intentFilter.addAction(BluetoothLeService.ACTION_DATA_NOTIFY);
+        intentFilter.addAction(BluetoothLeService.ACTION_GATT_CONNECTED);
+
         registerReceiver(receiver,intentFilter);
 
 
@@ -229,7 +95,7 @@ public class DeviceScanActivity extends AppCompatActivity {
             public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
                 if(deviceList == null) return;
                 if(deviceList.size() <= i) return;
-                mBluetoothLeService.connectDevice(deviceList.get(i).getDevice());
+                mBluetoothLeService.connect(deviceList.get(i).getDevice().toString());
                 connnect();
             }
         });
@@ -241,11 +107,6 @@ public class DeviceScanActivity extends AppCompatActivity {
         if(mBluetoothLeService != null){
             mBluetoothLeService.startScan();
         }
-
-        BluetoothManager bluetoothManager =
-                (BluetoothManager) this.getSystemService(Context.BLUETOOTH_SERVICE);
-        BluetoothAdapter bluetoothAdapter = bluetoothManager.getAdapter();
-        bluetoothAdapter.startDiscovery();
     }
 
     private void stopScan(){
@@ -288,26 +149,11 @@ public class DeviceScanActivity extends AppCompatActivity {
     }
 
 
-
-    class UIHandler extends Handler{
-        @Override
-        public void handleMessage(Message msg) {
-            super.handleMessage(msg);
-            switch (msg.what){
-                case CHARACTERISTICS_FOUND:
-                    int res = msg.getData().getInt(CHARACTERISTICS_FOUND_RESULT);
-                    showToast(res+"");
-                    PageJumpHandler pageJumpHandler = new PageJumpHandler();
-                    pageJumpHandler.sendEmptyMessage(8000);
-                    break;
-            }
-        }
-    }
-
     class PageJumpHandler extends Handler{
         @Override
         public void handleMessage(Message msg) {
             super.handleMessage(msg);
+            showToast("connected");
             unregisterReceiver(receiver);
             goToDeviceDetail();
         }
