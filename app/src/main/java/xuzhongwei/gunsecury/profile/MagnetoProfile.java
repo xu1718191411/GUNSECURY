@@ -1,5 +1,6 @@
 package xuzhongwei.gunsecury.profile;
 
+import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothGattCharacteristic;
 import android.bluetooth.BluetoothGattService;
 
@@ -9,8 +10,8 @@ import xuzhongwei.gunsecury.common.GattInfo;
 import xuzhongwei.gunsecury.service.BluetoothLeService;
 
 public class MagnetoProfile extends GenericBleProfile {
-    public MagnetoProfile(BluetoothLeService bluetoothLeService, BluetoothGattService bluetoothGattService) {
-        super(bluetoothLeService, bluetoothGattService);
+    public MagnetoProfile(BluetoothLeService bluetoothLeService, BluetoothGattService bluetoothGattService,BluetoothDevice device) {
+        super(bluetoothLeService, bluetoothGattService,device);
 
         List<BluetoothGattCharacteristic> charalist = bluetoothGattService.getCharacteristics();
         for(BluetoothGattCharacteristic c:charalist){

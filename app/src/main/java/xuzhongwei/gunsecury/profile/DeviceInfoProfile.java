@@ -1,5 +1,6 @@
 package xuzhongwei.gunsecury.profile;
 
+import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothGattCharacteristic;
 import android.bluetooth.BluetoothGattService;
 
@@ -25,8 +26,8 @@ public class DeviceInfoProfile extends GenericBleProfile {
     BluetoothGattCharacteristic softwareREVc;
     BluetoothGattCharacteristic ManifacturerNAMEc;
 
-    public DeviceInfoProfile(BluetoothLeService bluetoothLeService, BluetoothGattService bluetoothGattService) {
-        super(bluetoothLeService, bluetoothGattService);
+    public DeviceInfoProfile(BluetoothLeService bluetoothLeService, BluetoothGattService bluetoothGattService,BluetoothDevice device) {
+        super(bluetoothLeService, bluetoothGattService,device);
         List<BluetoothGattCharacteristic> charalist = bluetoothGattService.getCharacteristics();
 
 

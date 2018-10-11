@@ -86,7 +86,29 @@
             android:src="@drawable/accelerometer"/>
     </LinearLayout>
 
+    <LinearLayout
+        android:id="@+id/movement_layout"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="horizontal"
+        android:visibility="invisible">
 
+        <TextView
+            android:id="@+id/movementValue"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:textSize="60dp"
+            android:text="+1.65g"
+            android:textAlignment="center"
+            android:layout_gravity="center"
+            android:layout_weight="1"/>
+        <ImageView
+            android:layout_width="0dp"
+            android:layout_weight="1"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:src="@drawable/accelerometer"/>
+    </LinearLayout>
 
 
     <LinearLayout
@@ -124,7 +146,7 @@
         android:visibility="invisible">
 
         <TextView
-            android:id="@+id/movementValue"
+            android:id="@+id/magnetometerValue"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:textSize="60dp"
@@ -150,7 +172,7 @@
         android:visibility="invisible">
 
         <TextView
-            android:id="@+id/luxometerValue"
+            android:id="@+id/barometerValue"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:textSize="60dp"
@@ -166,6 +188,33 @@
             android:id="@+id/ir_barometer"
             android:src="@drawable/temprature"/>
     </LinearLayout>
+
+
+    <LinearLayout
+        android:id="@+id/luxometer_layout"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="horizontal"
+        android:visibility="invisible">
+
+        <TextView
+            android:id="@+id/luxometerValue"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:textSize="60dp"
+            android:text="39℃"
+            android:textAlignment="center"
+            android:layout_gravity="center"
+            android:layout_weight="1"/>
+        <ImageView
+            android:layout_width="0dp"
+            android:layout_weight="1"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:id="@+id/luxometerImage"
+            android:src="@drawable/temprature"/>
+    </LinearLayout>
+
 
 
 

@@ -36,11 +36,15 @@ public class DeviceScanActivity extends AppCompatActivity {
     private ListView bleScanListView;
     private DeviceScanResultAdapter mDeviceScanResultAdapter;
     private ArrayList<BLEDeviceDAO> deviceList = new ArrayList<BLEDeviceDAO>();
+    private ArrayList<BluetoothDevice> mBluetoothDevicesList = new ArrayList<BluetoothDevice>();
     private BluetoothLeService mBluetoothLeService;
+    private BluetoothDevice mBluetoothDevice = null;
+
     private static final int CHARACTERISTICS_FOUND = 1;
     private static final String CHARACTERISTICS_FOUND_RESULT = "CHARACTERISTICS_FOUND_RESULT";
     ArrayList<GenericBleProfile> bleProfiles = new ArrayList<GenericBleProfile>();
     private BroadcastReceiver receiver;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -52,7 +56,6 @@ public class DeviceScanActivity extends AppCompatActivity {
         bleScanListView.setAdapter(mDeviceScanResultAdapter);
         mBLEController = new BLEController(this);
         mBluetoothLeService = BluetoothLeService.getInstance();
-
 
 
         receiver  = new BroadcastReceiver() {
@@ -70,6 +73,7 @@ public class DeviceScanActivity extends AppCompatActivity {
                     BluetoothDevice device = (BluetoothDevice) p;
                     BLEDeviceDAO dao = new BLEDeviceDAO(device.getName(),device.getAddress(),device);
                     addIntoDeviceList(dao);
+                    addIntoDeviceList(device);
                 }else{
                     String a = intent.getAction();
                     String b = BluetoothLeService.ACTION_GATT_CONNECTED;
@@ -96,11 +100,14 @@ public class DeviceScanActivity extends AppCompatActivity {
                 if(deviceList == null) return;
                 if(deviceList.size() <= i) return;
                 mBluetoothLeService.connect(deviceList.get(i).getDevice().toString());
+                mBluetoothDevice = mBluetoothDevicesList.get(i);
                 connnect();
             }
         });
 
     }
+
+
 
 
     public void startScan(View view){
@@ -125,6 +132,15 @@ public class DeviceScanActivity extends AppCompatActivity {
         showBLEDevice();
     }
 
+    private void addIntoDeviceList(BluetoothDevice device){
+        for(int i=0;i<mBluetoothDevicesList.size();i++){
+            if(mBluetoothDevicesList.get(i).getAddress().equals(device.getAddress())){
+                return;
+            }
+        }
+        mBluetoothDevicesList.add(device);
+    }
+
     private void showBLEDevice(){
         mDeviceScanResultAdapter.setmBLEDeviceList(deviceList);
         mDeviceScanResultAdapter.notifyDataSetChanged();
@@ -140,6 +156,7 @@ public class DeviceScanActivity extends AppCompatActivity {
     private void goToDeviceDetail(){
         mProgressBar.setVisibility(View.GONE);
         Intent intent = new Intent(mActivity,DeviceDetailActivity.class);
+        intent.putExtra(DeviceDetailActivity.EXTRA_DEVICE, mBluetoothDevice);
         mActivity.startActivity(intent);
     }
 

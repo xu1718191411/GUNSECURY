@@ -1,5 +1,6 @@
 package xuzhongwei.gunsecury.profile;
 
+import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothGattCharacteristic;
 import android.bluetooth.BluetoothGattService;
 
@@ -11,8 +12,8 @@ import xuzhongwei.gunsecury.util.Adapter.Point3D;
 import xuzhongwei.gunsecury.util.Adapter.sensor.Sensor;
 
 public class LuxometerProfile extends GenericBleProfile {
-    public LuxometerProfile(BluetoothLeService bluetoothLeService, BluetoothGattService bluetoothGattService) {
-        super(bluetoothLeService, bluetoothGattService);
+    public LuxometerProfile(BluetoothLeService bluetoothLeService, BluetoothGattService bluetoothGattService,BluetoothDevice device) {
+        super(bluetoothLeService, bluetoothGattService,device);
 
         List<BluetoothGattCharacteristic> charalist = bluetoothGattService.getCharacteristics();
         for(BluetoothGattCharacteristic c:charalist){
@@ -32,6 +33,12 @@ public class LuxometerProfile extends GenericBleProfile {
     }
 
 
+    public static boolean isCorrectService(BluetoothGattService service) {
+        if ((service.getUuid().toString().compareTo(GattInfo.UUID_OPT_SERV.toString())) == 0) {
+            return true;
+        }
+        else return false;
+    }
 
     public void updateData(byte[] value){
         Point3D v = Sensor.LUXOMETER.convert(value);

@@ -1,5 +1,6 @@
 package xuzhongwei.gunsecury.profile;
 
+import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothGattCharacteristic;
 import android.bluetooth.BluetoothGattService;
 
@@ -11,8 +12,8 @@ import xuzhongwei.gunsecury.util.Adapter.Point3D;
 import xuzhongwei.gunsecury.util.Adapter.sensor.Sensor;
 
 public class AcceleroteProfile extends GenericBleProfile {
-    public AcceleroteProfile(BluetoothLeService bluetoothLeService, BluetoothGattService bluetoothGattService) {
-        super(bluetoothLeService, bluetoothGattService);
+    public AcceleroteProfile(BluetoothLeService bluetoothLeService, BluetoothGattService bluetoothGattService,BluetoothDevice device) {
+        super(bluetoothLeService, bluetoothGattService,device);
 
         List<BluetoothGattCharacteristic> charalist = bluetoothGattService.getCharacteristics();
         for(BluetoothGattCharacteristic c:charalist){
