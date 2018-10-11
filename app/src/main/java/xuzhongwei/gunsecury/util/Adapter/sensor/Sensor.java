@@ -11,12 +11,11 @@ import java.util.List;
 import java.util.UUID;
 
 import static java.lang.Math.pow;
+import xuzhongwei.gunsecury.DeviceDetailActivity;
+import xuzhongwei.gunsecury.common.GattInfo;
 import static xuzhongwei.gunsecury.common.GattInfo.UUID_ACC_CONF;
 import static xuzhongwei.gunsecury.common.GattInfo.UUID_ACC_DATA;
 import static xuzhongwei.gunsecury.common.GattInfo.UUID_ACC_SERV;
-import static xuzhongwei.gunsecury.common.GattInfo.UUID_BAR_CONF;
-import static xuzhongwei.gunsecury.common.GattInfo.UUID_BAR_DATA;
-import static xuzhongwei.gunsecury.common.GattInfo.UUID_BAR_SERV;
 import static xuzhongwei.gunsecury.common.GattInfo.UUID_HUM_CONF;
 import static xuzhongwei.gunsecury.common.GattInfo.UUID_HUM_DATA;
 import static xuzhongwei.gunsecury.common.GattInfo.UUID_HUM_SERV;
@@ -26,14 +25,12 @@ import static xuzhongwei.gunsecury.common.GattInfo.UUID_IRT_SERV;
 import static xuzhongwei.gunsecury.common.GattInfo.UUID_MAG_CONF;
 import static xuzhongwei.gunsecury.common.GattInfo.UUID_MAG_DATA;
 import static xuzhongwei.gunsecury.common.GattInfo.UUID_MAG_SERV;
-import static xuzhongwei.gunsecury.common.GattInfo.UUID_OPT_SERV;
-import static xuzhongwei.gunsecury.common.GattInfo.UUID_OPT_DATA;
-import static xuzhongwei.gunsecury.common.GattInfo.UUID_OPT_CONF;
-import static xuzhongwei.gunsecury.common.GattInfo.UUID_MOV_SERV;
-import static xuzhongwei.gunsecury.common.GattInfo.UUID_MOV_DATA;
 import static xuzhongwei.gunsecury.common.GattInfo.UUID_MOV_CONF;
-
-
+import static xuzhongwei.gunsecury.common.GattInfo.UUID_MOV_DATA;
+import static xuzhongwei.gunsecury.common.GattInfo.UUID_MOV_SERV;
+import static xuzhongwei.gunsecury.common.GattInfo.UUID_OPT_CONF;
+import static xuzhongwei.gunsecury.common.GattInfo.UUID_OPT_DATA;
+import static xuzhongwei.gunsecury.common.GattInfo.UUID_OPT_SERV;
 import xuzhongwei.gunsecury.util.Adapter.Point3D;
 
 /**
@@ -142,37 +139,64 @@ public enum Sensor {
             }
 
         },
-    BAROMETER(UUID_BAR_SERV, UUID_BAR_DATA, UUID_BAR_CONF) {
+    BAROMETER(GattInfo.UUID_BAR_SERV, GattInfo.UUID_BAR_DATA, GattInfo.UUID_BAR_CONF) {
         @Override
         public Point3D convert(final byte [] value) {
 
+            if (DeviceDetailActivity.getInstance().isSensorTag2()) {
+                if (value.length > 4) {
+                    Integer val = twentyFourBitUnsignedAtOffset(value, 2);
+                    return new Point3D((double) val / 100.0, 0, 0);
+                }
+                else {
+                    int mantissa;
+                    int exponent;
+                    Integer sfloat = shortUnsignedAtOffset(value, 2);
 
-            List<Integer> barometerCalibrationCoefficients = BarometerCalibrationCoefficients.INSTANCE.barometerCalibrationCoefficients;
-            if (barometerCalibrationCoefficients == null) {
-                // Log.w("Sensor", "Data notification arrived for barometer before it was calibrated.");
-                return new Point3D(0,0,0);
+                    mantissa = sfloat & 0x0FFF;
+                    exponent = (sfloat >> 12) & 0xFF;
+
+                    double output;
+                    double magnitude = pow(2.0f, exponent);
+                    output = (mantissa * magnitude);
+                    return new Point3D(output / 100.0f, 0, 0);
+                }
+
+
+				/*
+				Integer val = shortUnsignedAtOffset(value, 2);
+				Log.d("TEST","Value " + value[3] + " " + value[2] + " Val: " + val);
+
+				return new Point3D((double)val / 100.0,0,0);
+				*/
+            } else {
+                List<Integer> barometerCalibrationCoefficients = BarometerCalibrationCoefficients.INSTANCE.barometerCalibrationCoefficients;
+                if (barometerCalibrationCoefficients == null) {
+                    // Log.w("Sensor", "Data notification arrived for barometer before it was calibrated.");
+                    return new Point3D(0,0,0);
+                }
+
+                final int[] c; // Calibration coefficients
+                final Integer t_r; // Temperature raw value from sensor
+                final Integer p_r; // Pressure raw value from sensor
+                final Double S; // Interim value in calculation
+                final Double O; // Interim value in calculation
+                final Double p_a; // Pressure actual value in unit Pascal.
+
+                c = new int[barometerCalibrationCoefficients.size()];
+                for (int i = 0; i < barometerCalibrationCoefficients.size(); i++) {
+                    c[i] = barometerCalibrationCoefficients.get(i);
+                }
+
+                t_r = shortSignedAtOffset(value, 0);
+                p_r = shortUnsignedAtOffset(value, 2);
+
+                S = c[2] + c[3] * t_r / pow(2, 17) + ((c[4] * t_r / pow(2, 15)) * t_r) / pow(2, 19);
+                O = c[5] * pow(2, 14) + c[6] * t_r / pow(2, 3) + ((c[7] * t_r / pow(2, 15)) * t_r) / pow(2, 4);
+                p_a = (S * p_r + O) / pow(2, 14);
+
+                return new Point3D(p_a,0,0);
             }
-
-            final int[] c; // Calibration coefficients
-            final Integer t_r; // Temperature raw value from sensor
-            final Integer p_r; // Pressure raw value from sensor
-            final Double S; // Interim value in calculation
-            final Double O; // Interim value in calculation
-            final Double p_a; // Pressure actual value in unit Pascal.
-
-            c = new int[barometerCalibrationCoefficients.size()];
-            for (int i = 0; i < barometerCalibrationCoefficients.size(); i++) {
-                c[i] = barometerCalibrationCoefficients.get(i);
-            }
-
-            t_r = shortSignedAtOffset(value, 0);
-            p_r = shortUnsignedAtOffset(value, 2);
-
-            S = c[2] + c[3] * t_r / pow(2, 17) + ((c[4] * t_r / pow(2, 15)) * t_r) / pow(2, 19);
-            O = c[5] * pow(2, 14) + c[6] * t_r / pow(2, 3) + ((c[7] * t_r / pow(2, 15)) * t_r) / pow(2, 4);
-            p_a = (S * p_r + O) / pow(2, 14);
-
-            return new Point3D(p_a,0,0);
         }
     },
     LUXOMETER(UUID_OPT_SERV, UUID_OPT_DATA, UUID_OPT_CONF) {

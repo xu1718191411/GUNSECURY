@@ -33,6 +33,14 @@ public class AcceleroteProfile extends GenericBleProfile {
     }
 
 
+    public static boolean isCorrectService(BluetoothGattService service) {
+        if ((service.getUuid().toString().compareTo(GattInfo.UUID_ACC_SERV.toString())) == 0) {
+            return true;
+        }
+        else return false;
+    }
+
+
     public void updateData(byte[] value){
 
         Point3D v = Sensor.ACCELEROMETER.convert(value);

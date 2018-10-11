@@ -29,6 +29,9 @@ import java.util.ArrayList;
 import java.util.List;
 
 import xuzhongwei.gunsecury.controllers.BLEController;
+import xuzhongwei.gunsecury.profile.AcceleroteProfile;
+import xuzhongwei.gunsecury.profile.AmbientTemperatureProfile;
+import xuzhongwei.gunsecury.profile.BarometerProfile;
 import xuzhongwei.gunsecury.profile.GenericBleProfile;
 import xuzhongwei.gunsecury.profile.HumidityProfile;
 import xuzhongwei.gunsecury.profile.LuxometerProfile;
@@ -61,6 +64,10 @@ public class DeviceDetailActivity extends AppCompatActivity {
 
     private List<GenericBleProfile> mProfiles;
 
+    private Boolean mIsSensorTag2 = false;
+
+    protected static DeviceDetailActivity mThis = null;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -72,11 +79,30 @@ public class DeviceDetailActivity extends AppCompatActivity {
         mBluetoothDevice = intent.getParcelableExtra(EXTRA_DEVICE);
         mainController = new BLEController(this);
         mProfiles = new ArrayList<GenericBleProfile>();
+
+        mIsSensorTag2 = false;
+        // Determine type of SensorTagGatt
+        String deviceName = mBluetoothDevice.getName();
+        if ((deviceName.equals("SensorTag2")) ||(deviceName.equals("CC2650 SensorTag"))) {
+            mIsSensorTag2 = true;
+        }
+
+
         initialLayout();
         initialReceiver();
         onViewInfalted();
         initialProgressBar();
+        mThis = this;
     }
+
+    public boolean isSensorTag2() {
+        return mIsSensorTag2;
+    }
+
+    public static DeviceDetailActivity getInstance() {
+        return (DeviceDetailActivity) mThis;
+    }
+
 
     private void initialProgressBar(){
         progressDialog = new ProgressDialog(DeviceDetailActivity.this);
@@ -92,7 +118,7 @@ public class DeviceDetailActivity extends AppCompatActivity {
     private void initialLayout(){
         mActivity = this;
         //mPlanetTitles = new String[]{"周囲温度", "赤外線温度", "加速度", "湿度","磁気","気圧","ジャイロスコープ","DeviceInformation"};
-        mPlanetTitles = new String[]{ "赤外線温度", "加速度", "湿度","三次元動作","明るさ"};
+        mPlanetTitles = new String[]{ "周囲温度", "加速度", "湿度","三次元動作","明るさ","気圧"};
         mDrawerLayout = (DrawerLayout) findViewById(R.id.drawer_layout);
         mDrawerList = (ListView) findViewById(R.id.left_drawer);
         mDrawerList.setAdapter(new ArrayAdapter<String>(this,
@@ -117,7 +143,7 @@ public class DeviceDetailActivity extends AppCompatActivity {
     private void ChangeContent(int n){
         //String[] ids = {"ambient_temprature_layout","ir_temprature_layout","ir_accelerometer_layout","ir_humidity_layout","ir_magnetometer_layout","ir_barometer_layout","ir_gyroscope_layout","deviceInformationLayout"};
 
-        String[] ids = {"ir_temprature_layout","ir_accelerometer_layout","ir_humidity_layout","movement_layout","luxometer_layout","deviceInformationLayout"};
+        String[] ids = {"ambient_temprature_layout","ir_accelerometer_layout","ir_humidity_layout","movement_layout","luxometer_layout","barometer_layout","deviceInformationLayout"};
 
         for(int i=0;i<ids.length;i++){
             ((LinearLayout) findViewById(getResourceId(ids[i],"id",getPackageName()))).setVisibility(View.GONE);
@@ -137,98 +163,6 @@ public class DeviceDetailActivity extends AppCompatActivity {
         }
     }
 
-//    private void startBLEService(){
-//        mBluetoothLeService = BluetoothLeService.getInstance();
-//        bleServiceList = mBluetoothLeService.getBLEService();
-//        for(int s=0;s<bleServiceList.size();s++){
-//            if(bleServiceList.get(s).getUuid().toString().compareTo(GattInfo.UUID_HUM_SERV.toString()) == 0){
-//                BluetoothGattService service = bleServiceList.get(s);//not all of the service but the service that is indicated to the HUMIDITY Service
-//                HumidityProfile humidityProfile = new HumidityProfile(mBluetoothLeService,service);
-//
-//
-//                humidityProfile.setmOnDataChangedListener(new GenericBleProfile.OnDataChangedListener() {
-//                    @Override
-//                    public void onDataChanged(String data) {
-//                        ((TextView) mActivity.findViewById(R.id.humidityValue)).setText(data);
-//                    }
-//                });
-//
-//                bleProfiles.add(humidityProfile);
-//            }
-//
-//            if(bleServiceList.get(s).getUuid().toString().compareTo(GattInfo.UUID_IRT_SERV.toString()) == 0){
-//                BluetoothGattService service = bleServiceList.get(s);//not all of the service but the service that is indicated to the HUMIDITY Service
-//                IRTTemperature iRTTemperature = new IRTTemperature(mBluetoothLeService,service);
-//
-//                iRTTemperature.setmOnDataChangedListener(new GenericBleProfile.OnDataChangedListener() {
-//                    @Override
-//                    public void onDataChanged(String data) {
-//                        ((TextView) mActivity.findViewById(R.id.irTempratureValue)).setText(data);
-//                    }
-//                });
-//
-//                bleProfiles.add(iRTTemperature);
-//            }
-//
-//            if(bleServiceList.get(s).getUuid().toString().compareTo(GattInfo.UUID_ACC_SERV.toString()) == 0){
-//
-//                BluetoothGattService service = bleServiceList.get(s);//not all of the service but the service that is indicated to the HUMIDITY Service
-//                AcceleroteProfile acceleroteProfile = new AcceleroteProfile(mBluetoothLeService,service);
-//
-//                acceleroteProfile.setmOnDataChangedListener(new GenericBleProfile.OnDataChangedListener() {
-//                    @Override
-//                    public void onDataChanged(String data) {
-//                        ((TextView) mActivity.findViewById(R.id.acceleroterValue)).setText(data);
-//                    }
-//                });
-//
-//                bleProfiles.add(acceleroteProfile);
-//            }
-//
-//
-//            if(bleServiceList.get(s).getUuid().toString().compareTo(GattInfo.UUID_MOV_SERV.toString()) == 0){
-//
-//                BluetoothGattService service = bleServiceList.get(s);//not all of the service but the service that is indicated to the HUMIDITY Service
-//                MovementProfile movementProfile = new MovementProfile(mBluetoothLeService,service);
-//
-//                movementProfile.setmOnDataChangedListener(new GenericBleProfile.OnDataChangedListener() {
-//                    @Override
-//                    public void onDataChanged(String data) {
-//                        ((TextView) mActivity.findViewById(R.id.movementValue)).setText(data);
-//                    }
-//                });
-//
-//                bleProfiles.add(movementProfile);
-//            }
-//
-//
-//            if(bleServiceList.get(s).getUuid().toString().compareTo(GattInfo.UUID_OPT_SERV.toString()) == 0){
-//                BluetoothGattService service = bleServiceList.get(s);//not all of the service but the service that is indicated to the HUMIDITY Service
-//                LuxometerProfile luxometerProfile = new LuxometerProfile(mBluetoothLeService,service);
-//                luxometerProfile.setmOnDataChangedListener(new GenericBleProfile.OnDataChangedListener() {
-//                    @Override
-//                    public void onDataChanged(String data) {
-//                        String s = data;
-//                    }
-//                });
-//
-//                bleProfiles.add(luxometerProfile);
-//            }
-//        }
-//
-//
-//        if(bleServiceList.size() > 0){
-//            for(int i=0;i<bleServiceList.size();i++){
-//                List<BluetoothGattCharacteristic> characteristics = bleServiceList.get(i).getCharacteristics();
-//                if(characteristics.size() > 0){
-//                    for(int j=0;j<characteristics.size();j++){
-//                        characteristicList.add(characteristics.get(j));
-//                    }
-//                }
-//            }
-//        }
-//
-//    }
 
 
     private void onViewInfalted(){
@@ -417,6 +351,70 @@ public class DeviceDetailActivity extends AppCompatActivity {
                                                 }
 
 
+                                                if (AcceleroteProfile.isCorrectService(s)) {
+                                                    AcceleroteProfile acc = new AcceleroteProfile(mBluetoothLeService,s,mBluetoothDevice);
+                                                    acc.setmOnDataChangedListener(new GenericBleProfile.OnDataChangedListener() {
+                                                        @Override
+                                                        public void onDataChanged(String data) {
+                                                            ((TextView) mActivity.findViewById(R.id.acceleroterValue)).setText(data);
+                                                        }
+                                                    });
+                                                    mProfiles.add(acc);
+                                                    if (nrNotificationsOn < maxNotifications) {
+                                                        acc.configureService();
+                                                        nrNotificationsOn++;
+                                                    }
+                                                    Log.d("DeviceActivity","Found Motion !");
+                                                }
+
+//                                                if (IRTTemperature.isCorrectService(s)) {
+//                                                    IRTTemperature irTemp = new IRTTemperature(mBluetoothLeService,s,mBluetoothDevice);
+//                                                    irTemp.setmOnDataChangedListener(new GenericBleProfile.OnDataChangedListener() {
+//                                                        @Override
+//                                                        public void onDataChanged(String data) {
+//                                                            ((TextView) mActivity.findViewById(R.id.irTempratureValue)).setText(data);
+//                                                        }
+//                                                    });
+//                                                    mProfiles.add(irTemp);
+//                                                    if (nrNotificationsOn < maxNotifications) {
+//                                                        irTemp.configureService();
+//                                                    }
+//                                                    //No notifications add here because it is already enabled above ..
+//                                                    Log.d("DeviceActivity","Found IR Temperature !");
+//                                                }
+
+                                                if (BarometerProfile.isCorrectService(s)) {
+                                                    BarometerProfile bar = new BarometerProfile(mBluetoothLeService,s,mBluetoothDevice);
+                                                    bar.setmOnDataChangedListener(new GenericBleProfile.OnDataChangedListener() {
+                                                        @Override
+                                                        public void onDataChanged(String data) {
+                                                            ((TextView) mActivity.findViewById(R.id.barometerValue)).setText(data);
+                                                        }
+                                                    });
+                                                    mProfiles.add(bar);
+                                                    if (nrNotificationsOn < maxNotifications) {
+                                                        bar.configureService();
+                                                    }
+                                                    //No notifications add here because it is already enabled above ..
+                                                    Log.d("DeviceActivity","Found IR Temperature !");
+                                                }
+
+                                                if (AmbientTemperatureProfile.isCorrectService(s)) {
+                                                    AmbientTemperatureProfile ambient = new AmbientTemperatureProfile(mBluetoothLeService,s,mBluetoothDevice);
+                                                    ambient.setmOnDataChangedListener(new GenericBleProfile.OnDataChangedListener() {
+                                                        @Override
+                                                        public void onDataChanged(String data) {
+                                                            ((TextView) mActivity.findViewById(R.id.ambient_temprature)).setText(data);
+                                                        }
+                                                    });
+                                                    mProfiles.add(ambient);
+                                                    if (nrNotificationsOn < maxNotifications) {
+                                                        ambient.configureService();
+                                                        nrNotificationsOn++;
+                                                    }
+                                                    Log.d("DeviceActivity","Found Ambient Temperature !");
+                                                }
+
 
                                             }
 
@@ -461,7 +459,6 @@ public class DeviceDetailActivity extends AppCompatActivity {
 
 
 
-
                         Message msg = new Message();
                         msg.what = CHARACTERISTICS_FOUND;
                         Bundle bundle = new Bundle();
@@ -469,63 +466,6 @@ public class DeviceDetailActivity extends AppCompatActivity {
                         msg.setData(bundle);
                         mUIHandler.sendMessage(msg);
 
-
-
-//                        Thread thread = new Thread(new Runnable() {
-//                            @Override
-//                            public void run() {
-//
-//                                //loop the GattService and retrieve each Service towards HUMIDITY,TEMPERATURE,GRAVITY......
-//                                for(int s=0;s<bleServiceList.size();s++){
-//
-//                                    if(bleServiceList.get(s).getUuid().toString().compareTo(GattInfo.UUID_HUM_SERV.toString()) == 0){
-//                                        BluetoothGattService service = bleServiceList.get(s);//not all of the service but the service that is indicated to the HUMIDITY Service
-//                                        HumidityProfile humidityProfile = new HumidityProfile(mBluetoothLeService,service,mBluetoothDevice);
-//
-//                                        humidityProfile.setmOnDataChangedListener(new GenericBleProfile.OnDataChangedListener() {
-//                                            @Override
-//                                            public void onDataChanged(String data) {
-//                                                ((TextView) mActivity.findViewById(R.id.humidityValue)).setText(data);
-//                                            }
-//                                        });
-//
-//
-//                                        humidityProfile.configureService();
-//                                        bleProfiles.add(humidityProfile);
-//                                    }
-//
-//                                    if(bleServiceList.get(s).getUuid().toString().compareTo(GattInfo.UUID_IRT_SERV.toString()) == 0){
-//
-//                                        BluetoothGattService service = bleServiceList.get(s);//not all of the service but the service that is indicated to the HUMIDITY Service
-//                                        IRTTemperature iRTTemperature = new IRTTemperature(mBluetoothLeService,service,mBluetoothDevice);
-//                                        iRTTemperature.configureService();
-//                                        bleProfiles.add(iRTTemperature);
-//                                    }
-//
-//                                    if(bleServiceList.get(s).getUuid().toString().compareTo(GattInfo.UUID_MOV_SERV.toString()) == 0){
-//                                        BluetoothGattService service = bleServiceList.get(s);//not all of the service but the service that is indicated to the HUMIDITY Service
-//                                        MovementProfile movementProfile = new MovementProfile(mBluetoothLeService,service,mBluetoothDevice);
-//                                        movementProfile.configureService();
-//                                        bleProfiles.add(movementProfile);
-//                                    }
-//
-//                                    if(bleServiceList.get(s).getUuid().toString().compareTo(GattInfo.UUID_OPT_SERV.toString()) == 0){
-//                                        BluetoothGattService service = bleServiceList.get(s);//not all of the service but the service that is indicated to the HUMIDITY Service
-//                                        LuxometerProfile luxometerProfile = new LuxometerProfile(mBluetoothLeService,service,mBluetoothDevice);
-//                                        bleProfiles.add(luxometerProfile);
-//                                    }
-//
-//                                }
-//
-//                                for(final GenericBleProfile p:bleProfiles){
-//                                    p.enableService();
-//                                }
-//
-//
-//                            }
-//                        });
-//
-//                        thread.start();
 
                     }else{
                         Toast toast = Toast.makeText(getApplicationContext(),"not success get services",Toast.LENGTH_SHORT);

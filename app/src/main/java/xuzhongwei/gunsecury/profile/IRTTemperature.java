@@ -32,6 +32,14 @@ public class IRTTemperature extends GenericBleProfile {
     }
 
 
+    public static boolean isCorrectService(BluetoothGattService service) {
+        if ((service.getUuid().toString().compareTo(GattInfo.UUID_IRT_SERV.toString())) == 0) {
+            return true;
+        }
+        else return false;
+    }
+
+
 
     public void configureService(){
         //mBluetoothLeService.writeCharacteristic(configData,(byte)0x01);
