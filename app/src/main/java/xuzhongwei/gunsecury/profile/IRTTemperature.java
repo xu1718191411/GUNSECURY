@@ -52,9 +52,24 @@ public class IRTTemperature extends GenericBleProfile {
         if(mOnDataChangedListener != null){
             mOnDataChangedListener.onDataChanged(String.format("%.1f°C", v.y));
         }
+
+        if(mOnIRTemperatureListener != null){
+            mOnIRTemperatureListener.onIRTemperatureChanged(v.y);
+        }
     }
 
     public void writeCharactristic(){
         mBluetoothLeService.writeCharacteristic(this.configData);
+    }
+
+
+    public interface OnIRTemperatureListener{
+        void onIRTemperatureChanged(double tem);
+    }
+
+    OnIRTemperatureListener mOnIRTemperatureListener;
+
+    public void setmOnIRTemperatureListener(OnIRTemperatureListener mOnIRTemperatureListener) {
+        this.mOnIRTemperatureListener = mOnIRTemperatureListener;
     }
 }

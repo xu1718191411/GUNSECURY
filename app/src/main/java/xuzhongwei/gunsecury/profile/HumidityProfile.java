@@ -62,6 +62,18 @@ public class HumidityProfile extends GenericBleProfile {
             mOnDataChangedListener.onDataChanged(String.format("%.1f %%rH", v.x));
         }
 
+        if(mOnHumidityListener != null){
+            mOnHumidityListener.onHumidityChanged(v.x);
+        }
+    }
 
+    public interface OnHumidityListener{
+        void onHumidityChanged(double data);
+    }
+
+    private OnHumidityListener mOnHumidityListener;
+
+    public void setmOnHumidityListener(OnHumidityListener mOnHumidityListener) {
+        this.mOnHumidityListener = mOnHumidityListener;
     }
 }

@@ -48,5 +48,18 @@ public class AcceleroteProfile extends GenericBleProfile {
             mOnDataChangedListener.onDataChanged(String.format("X:%.2fG\n Y:%.2fG\n Z:%.2fG", v.x,v.y,v.z));
         }
 
+        if(mOnAccelerateListener != null){
+            mOnAccelerateListener.onAccelerateChanged(v.x,v.y,v.z);
+        }
+    }
+
+    public interface OnAccelerateListener{
+        public void onAccelerateChanged(double x,double y,double z);
+    }
+
+    private OnAccelerateListener mOnAccelerateListener;
+
+    public void setmOnAccelerateListener(OnAccelerateListener mOnAccelerateListener) {
+        this.mOnAccelerateListener = mOnAccelerateListener;
     }
 }

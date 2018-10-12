@@ -34,6 +34,7 @@ import xuzhongwei.gunsecury.profile.AmbientTemperatureProfile;
 import xuzhongwei.gunsecury.profile.BarometerProfile;
 import xuzhongwei.gunsecury.profile.GenericBleProfile;
 import xuzhongwei.gunsecury.profile.HumidityProfile;
+import xuzhongwei.gunsecury.profile.IRTTemperature;
 import xuzhongwei.gunsecury.profile.LuxometerProfile;
 import xuzhongwei.gunsecury.profile.MovementProfile;
 import xuzhongwei.gunsecury.service.BluetoothLeService;
@@ -118,7 +119,7 @@ public class DeviceDetailActivity extends AppCompatActivity {
     private void initialLayout(){
         mActivity = this;
         //mPlanetTitles = new String[]{"周囲温度", "赤外線温度", "加速度", "湿度","磁気","気圧","ジャイロスコープ","DeviceInformation"};
-        mPlanetTitles = new String[]{ "周囲温度", "加速度", "湿度","三次元動作","明るさ","気圧"};
+        mPlanetTitles = new String[]{ "赤外温度","周囲温度", "加速度", "湿度","三次元動作","明るさ","気圧"};
         mDrawerLayout = (DrawerLayout) findViewById(R.id.drawer_layout);
         mDrawerList = (ListView) findViewById(R.id.left_drawer);
         mDrawerList.setAdapter(new ArrayAdapter<String>(this,
@@ -143,7 +144,7 @@ public class DeviceDetailActivity extends AppCompatActivity {
     private void ChangeContent(int n){
         //String[] ids = {"ambient_temprature_layout","ir_temprature_layout","ir_accelerometer_layout","ir_humidity_layout","ir_magnetometer_layout","ir_barometer_layout","ir_gyroscope_layout","deviceInformationLayout"};
 
-        String[] ids = {"ambient_temprature_layout","ir_accelerometer_layout","ir_humidity_layout","movement_layout","luxometer_layout","barometer_layout","deviceInformationLayout"};
+        String[] ids = {"ir_temprature_layout","ambient_temprature_layout","ir_accelerometer_layout","ir_humidity_layout","movement_layout","luxometer_layout","barometer_layout","deviceInformationLayout"};
 
         for(int i=0;i<ids.length;i++){
             ((LinearLayout) findViewById(getResourceId(ids[i],"id",getPackageName()))).setVisibility(View.GONE);
@@ -205,6 +206,37 @@ public class DeviceDetailActivity extends AppCompatActivity {
                             }
                         }
                     }
+                }else if(intent.getAction().equals(BluetoothLeService.ACTION_DATA_READ)){
+                    // Data read
+                    byte[] value = intent.getByteArrayExtra(BluetoothLeService.EXTRA_DATA);
+                    String uuidStr = intent.getStringExtra(BluetoothLeService.EXTRA_UUID);
+                    for (int ii = 0; ii < charList.size(); ii++) {
+                        BluetoothGattCharacteristic tempC = charList.get(ii);
+                        if ((tempC.getUuid().toString().equals(uuidStr))) {
+                            for (int jj = 0; jj < mProfiles.size(); jj++) {
+                                GenericBleProfile p = mProfiles.get(jj);
+                                p.didReadValueForCharacteristic(tempC);
+                            }
+                            //Log.d("DeviceActivity","Got Characteristic : " + tempC.getUuid().toString());
+                            break;
+                        }
+                    }
+                }else if(intent.getAction().equals(BluetoothLeService.ACTION_DATA_WRITE)){
+
+                    byte[] value = intent.getByteArrayExtra(BluetoothLeService.EXTRA_DATA);
+                    String uuidStr = intent.getStringExtra(BluetoothLeService.EXTRA_UUID);
+                    for (int ii = 0; ii < charList.size(); ii++) {
+                        BluetoothGattCharacteristic tempC = charList.get(ii);
+                        if ((tempC.getUuid().toString().equals(uuidStr))) {
+                            for (int jj = 0; jj < mProfiles.size(); jj++) {
+                                GenericBleProfile p = mProfiles.get(jj);
+                                p.didWriteValueForCharacteristic(tempC);
+                            }
+                            //Log.d("DeviceActivity","Got Characteristic : " + tempC.getUuid().toString());
+                            break;
+                        }
+                    }
+
                 }else if(intent.getAction().equals(BluetoothLeService.ACTION_GATT_SERVICES_DISCOVERED)){
 
                     if (status == BluetoothGatt.GATT_SUCCESS) {
@@ -312,7 +344,6 @@ public class DeviceDetailActivity extends AppCompatActivity {
                                                             ((TextView) mActivity.findViewById(R.id.luxometerValue)).setText(data);
                                                         }
                                                     });
-
                                                 }
 
 
@@ -336,10 +367,27 @@ public class DeviceDetailActivity extends AppCompatActivity {
 
                                                 if (MovementProfile.isCorrectService(s)) {
                                                     MovementProfile mov = new MovementProfile(mBluetoothLeService,s,mBluetoothDevice);
-                                                    mov.setmOnDataChangedListener(new GenericBleProfile.OnDataChangedListener() {
+//                                                    mov.setmOnDataChangedListener(new GenericBleProfile.OnDataChangedListener() {
+//                                                        @Override
+//                                                        public void onDataChanged(String data) {
+//                                                            ((TextView) mActivity.findViewById(R.id.movementValue)).setText(data);
+//                                                        }
+//                                                    });
+
+                                                    mov.setmOnMovementListener(new MovementProfile.OnMovementListener() {
                                                         @Override
-                                                        public void onDataChanged(String data) {
-                                                            ((TextView) mActivity.findViewById(R.id.movementValue)).setText(data);
+                                                        public void onMovementACCChanged(double x, double y, double z) {
+                                                            ((TextView) mActivity.findViewById(R.id.movementValue1)).setText("x:"+x+"==y:"+y+"==z:"+z);
+                                                        }
+
+                                                        @Override
+                                                        public void onMovementGYROChanged(double x, double y, double z) {
+                                                            ((TextView) mActivity.findViewById(R.id.movementValue2)).setText("x:"+x+"==y:"+y+"==z:"+z);
+                                                        }
+
+                                                        @Override
+                                                        public void onMovementMAGChanged(double x, double y, double z) {
+                                                            ((TextView) mActivity.findViewById(R.id.movementValue3)).setText("x:"+x+"==y:"+y+"==z:"+z);
                                                         }
                                                     });
                                                     mProfiles.add(mov);
@@ -367,21 +415,21 @@ public class DeviceDetailActivity extends AppCompatActivity {
                                                     Log.d("DeviceActivity","Found Motion !");
                                                 }
 
-//                                                if (IRTTemperature.isCorrectService(s)) {
-//                                                    IRTTemperature irTemp = new IRTTemperature(mBluetoothLeService,s,mBluetoothDevice);
-//                                                    irTemp.setmOnDataChangedListener(new GenericBleProfile.OnDataChangedListener() {
-//                                                        @Override
-//                                                        public void onDataChanged(String data) {
-//                                                            ((TextView) mActivity.findViewById(R.id.irTempratureValue)).setText(data);
-//                                                        }
-//                                                    });
-//                                                    mProfiles.add(irTemp);
-//                                                    if (nrNotificationsOn < maxNotifications) {
-//                                                        irTemp.configureService();
-//                                                    }
-//                                                    //No notifications add here because it is already enabled above ..
-//                                                    Log.d("DeviceActivity","Found IR Temperature !");
-//                                                }
+                                                if (IRTTemperature.isCorrectService(s)) {
+                                                    IRTTemperature irTemp = new IRTTemperature(mBluetoothLeService,s,mBluetoothDevice);
+                                                    irTemp.setmOnDataChangedListener(new GenericBleProfile.OnDataChangedListener() {
+                                                        @Override
+                                                        public void onDataChanged(String data) {
+                                                            ((TextView) mActivity.findViewById(R.id.irTempratureValue)).setText(data);
+                                                        }
+                                                    });
+                                                    mProfiles.add(irTemp);
+                                                    if (nrNotificationsOn < maxNotifications) {
+                                                        irTemp.configureService();
+                                                    }
+                                                    //No notifications add here because it is already enabled above ..
+                                                    Log.d("DeviceActivity","Found IR Temperature !");
+                                                }
 
                                                 if (BarometerProfile.isCorrectService(s)) {
                                                     BarometerProfile bar = new BarometerProfile(mBluetoothLeService,s,mBluetoothDevice);
@@ -404,7 +452,7 @@ public class DeviceDetailActivity extends AppCompatActivity {
                                                     ambient.setmOnDataChangedListener(new GenericBleProfile.OnDataChangedListener() {
                                                         @Override
                                                         public void onDataChanged(String data) {
-                                                            ((TextView) mActivity.findViewById(R.id.ambient_temprature)).setText(data);
+                                                            ((TextView) mActivity.findViewById(R.id.ambientTempratureValue)).setText(data);
                                                         }
                                                     });
                                                     mProfiles.add(ambient);

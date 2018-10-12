@@ -63,19 +63,42 @@ public class MovementProfile extends GenericBleProfile {
     }
 
     public void updateData(byte[] value){
-        Point3D v;
-        String res = "";
-        v = Sensor.MOVEMENT_ACC.convert(value);
-        res = v.x+"-"+v.y+"-"+v.z+"\n";
+        Point3D vAcc;
+        Point3D vGyro;
+        Point3D vMag;
+        String resACC = "";
+        String resGYRO = "";
+        String resMAG = "";
 
-        v = Sensor.MOVEMENT_GYRO.convert(value);
-        res += v.x+"-"+v.y+"-"+v.z+"\n";
+        vAcc = Sensor.MOVEMENT_ACC.convert(value);
+        resACC = vAcc.x+"-"+vAcc.y+"-"+vAcc.z+"\n";
 
-        v = Sensor.MOVEMENT_MAG.convert(value);
-        res += v.x+"-"+v.y+"-"+v.z+"\n";
+        vGyro = Sensor.MOVEMENT_GYRO.convert(value);
+        resGYRO += vGyro.x+"-"+vGyro.y+"-"+vGyro.z+"\n";
+
+        vMag = Sensor.MOVEMENT_MAG.convert(value);
+        resMAG += vMag.x+"-"+vMag.y+"-"+vMag.z+"\n";
 
         if(mOnDataChangedListener != null){
-            mOnDataChangedListener.onDataChanged(res);
+            mOnDataChangedListener.onDataChanged(resGYRO);
         }
+
+        if(mOnMovementListener != null){
+            mOnMovementListener.onMovementACCChanged(vAcc.x,vAcc.y,vAcc.z);
+            mOnMovementListener.onMovementGYROChanged(vGyro.x,vGyro.y,vGyro.z);
+            mOnMovementListener.onMovementMAGChanged(vMag.x,vMag.y,vMag.z);
+        }
+    }
+
+    public interface OnMovementListener{
+        void onMovementACCChanged(double x,double y,double z);
+        void onMovementGYROChanged(double x,double y,double z);
+        void onMovementMAGChanged(double x,double y,double z);
+    }
+
+    private OnMovementListener mOnMovementListener;
+
+    public void setmOnMovementListener(OnMovementListener mOnMovementListener) {
+        this.mOnMovementListener = mOnMovementListener;
     }
 }

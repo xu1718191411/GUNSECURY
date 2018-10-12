@@ -64,5 +64,19 @@ public class AmbientTemperatureProfile extends GenericBleProfile {
             mOnDataChangedListener.onDataChanged(String.format("%.1f°F", (v.x * 1.8) + 32));
         }
 
+        if(mAmbientTemperatureListener != null){
+            mAmbientTemperatureListener.onAmbientTemperatureChanged((v.x * 1.8) + 32);
+        }
+
+    }
+
+    public interface AmbientTemperatureListener{
+        void onAmbientTemperatureChanged(double tem);
+    }
+
+    private AmbientTemperatureListener mAmbientTemperatureListener;
+
+    public void setmAmbientTemperatureListener(AmbientTemperatureListener mAmbientTemperatureListener) {
+        this.mAmbientTemperatureListener = mAmbientTemperatureListener;
     }
 }

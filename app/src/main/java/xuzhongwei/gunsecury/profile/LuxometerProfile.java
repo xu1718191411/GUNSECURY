@@ -46,4 +46,14 @@ public class LuxometerProfile extends GenericBleProfile {
             mOnDataChangedListener.onDataChanged(String.format("%.1f Lux", v.x)+"");
         }
     }
+
+    public interface OnLuxometerListener{
+        void onLuxometerChanged(double lux);
+    }
+
+    private OnLuxometerListener mOnLuxometerListener;
+
+    public void setmOnLuxometerListener(OnLuxometerListener mOnLuxometerListener) {
+        this.mOnLuxometerListener = mOnLuxometerListener;
+    }
 }

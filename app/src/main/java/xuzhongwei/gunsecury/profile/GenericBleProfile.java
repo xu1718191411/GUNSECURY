@@ -79,4 +79,41 @@ public class GenericBleProfile {
             e.printStackTrace();
         }
     }
+
+
+    public void didReadValueForCharacteristic(BluetoothGattCharacteristic c) {
+        if (this.periodData != null) {
+            if (c.equals(this.periodData)) {
+                byte[] value = c.getValue();
+                this.periodWasUpdated(value[0] * 10);
+            }
+        }
+    }
+
+    public void didWriteValueForCharacteristic(BluetoothGattCharacteristic c) {
+
+    }
+
+
+
+    public void periodWasUpdated(int period) {
+        if (period > 2450) period = 2450;
+        if (period < 100) period = 100;
+        byte p = (byte)((period / 10) + 10);
+        Log.d("GenericBluetoothProfile","Period characteristic set to :" + period);
+        /*
+		if (this.mBTLeService.writeCharacteristic(this.periodC, p)) {
+			mBTLeService.waitIdle(GATT_TIMEOUT);
+		} else {
+			Log.d("GenericBluetoothProfile","Sensor period failed: " + this.periodC.getUuid().toString());
+		}
+		*/
+        int error = mBluetoothLeService.writeCharacteristic(this.periodData, p);
+        if (error != 0) {
+            if (this.periodData != null)
+                printError("Sensor period failed: ",this.periodData,error);
+        }
+    }
+
+
 }
