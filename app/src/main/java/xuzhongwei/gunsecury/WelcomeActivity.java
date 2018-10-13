@@ -1,5 +1,7 @@
 package xuzhongwei.gunsecury;
 
+import android.app.Activity;
+import android.bluetooth.BluetoothDevice;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
@@ -8,6 +10,9 @@ import android.view.View;
 import android.widget.Button;
 
 public class WelcomeActivity extends AppCompatActivity {
+    public static final String EXTRA_DEVICE = "EXTRA_DEVICE";
+    BluetoothDevice mBluetoothDevice;
+    Activity mActivity;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -26,13 +31,19 @@ public class WelcomeActivity extends AppCompatActivity {
                 goToScanActivity();
             }
         });
-
+        Intent intent = getIntent();
+        mBluetoothDevice = intent.getParcelableExtra(EXTRA_DEVICE);
+        mActivity = this;
     }
-
 
     private void goToScanActivity(){
         Intent intent = new Intent(this,DeviceScanActivity.class);
         startActivity(intent);
     }
+
+
+
+
+
 }
 

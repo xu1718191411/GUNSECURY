@@ -12,14 +12,13 @@
         android:required="true"/>
 
     <application
+        android:name=".GUNSECURYAPPLICATION"
         android:allowBackup="true"
         android:icon="@mipmap/ic_launcher"
         android:label="@string/app_name"
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
-        android:theme="@style/AppTheme"
-        android:name="xuzhongwei.gunsecury.GUNSECURYAPPLICATION">
-
+        android:theme="@style/AppTheme">
         <activity android:name=".DeviceDetailActivity">
         </activity>
         <activity android:name=".WelcomeActivity">
@@ -37,6 +36,8 @@
         </service>
 
         <activity android:name=".DeviceScanActivity">
+        </activity>
+        <activity android:name=".MyWorldActivity">
         </activity>
     </application>
 

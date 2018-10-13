@@ -349,10 +349,17 @@ public class DeviceDetailActivity extends AppCompatActivity {
 
                                                 if (HumidityProfile.isCorrectService(s)) {
                                                     HumidityProfile hum = new HumidityProfile(mBluetoothLeService,s,mBluetoothDevice);
-                                                    hum.setmOnDataChangedListener(new GenericBleProfile.OnDataChangedListener() {
+//                                                    hum.setmOnDataChangedListener(new GenericBleProfile.OnDataChangedListener() {
+//                                                        @Override
+//                                                        public void onDataChanged(String data) {
+//                                                            ((TextView) mActivity.findViewById(R.id.humidityValue)).setText(data);
+//                                                        }
+//                                                    });
+
+                                                    hum.setmOnHumidityListener(new HumidityProfile.OnHumidityListener() {
                                                         @Override
-                                                        public void onDataChanged(String data) {
-                                                            ((TextView) mActivity.findViewById(R.id.humidityValue)).setText(data);
+                                                        public void onHumidityChanged(double data) {
+                                                            ((TextView) mActivity.findViewById(R.id.humidityValue)).setText(data+"");
                                                         }
                                                     });
 
@@ -377,17 +384,23 @@ public class DeviceDetailActivity extends AppCompatActivity {
                                                     mov.setmOnMovementListener(new MovementProfile.OnMovementListener() {
                                                         @Override
                                                         public void onMovementACCChanged(double x, double y, double z) {
-                                                            ((TextView) mActivity.findViewById(R.id.movementValue1)).setText("x:"+x+"==y:"+y+"==z:"+z);
+                                                            ((TextView) mActivity.findViewById(R.id.movementValue1X)).setText(x+"");
+                                                            ((TextView) mActivity.findViewById(R.id.movementValue1Y)).setText(y+"");
+                                                            ((TextView) mActivity.findViewById(R.id.movementValue1Z)).setText(z+"");
                                                         }
 
                                                         @Override
                                                         public void onMovementGYROChanged(double x, double y, double z) {
-                                                            ((TextView) mActivity.findViewById(R.id.movementValue2)).setText("x:"+x+"==y:"+y+"==z:"+z);
+                                                            ((TextView) mActivity.findViewById(R.id.movementValue2X)).setText(x+"");
+                                                            ((TextView) mActivity.findViewById(R.id.movementValue2Y)).setText(y+"");
+                                                            ((TextView) mActivity.findViewById(R.id.movementValue2Z)).setText(z+"");
                                                         }
 
                                                         @Override
                                                         public void onMovementMAGChanged(double x, double y, double z) {
-                                                            ((TextView) mActivity.findViewById(R.id.movementValue3)).setText("x:"+x+"==y:"+y+"==z:"+z);
+                                                            ((TextView) mActivity.findViewById(R.id.movementValue3X)).setText(x+"");
+                                                            ((TextView) mActivity.findViewById(R.id.movementValue3Y)).setText(y+"");
+                                                            ((TextView) mActivity.findViewById(R.id.movementValue3Z)).setText(z+"");
                                                         }
                                                     });
                                                     mProfiles.add(mov);

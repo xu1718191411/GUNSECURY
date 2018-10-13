@@ -160,6 +160,15 @@ public class DeviceScanActivity extends AppCompatActivity {
         mActivity.startActivity(intent);
     }
 
+
+    private void goToMyWorld(){
+        mProgressBar.setVisibility(View.GONE);
+        Intent intent = new Intent(mActivity,MyWorldActivity.class);
+        intent.putExtra(DeviceDetailActivity.EXTRA_DEVICE, mBluetoothDevice);
+        mActivity.startActivity(intent);
+    }
+
+
     private void showToast(String str){
         Toast toast = Toast.makeText(mActivity,str,Toast.LENGTH_LONG);
         toast.show();
